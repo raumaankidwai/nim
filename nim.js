@@ -97,7 +97,7 @@ function Tokenizer () {
 		[/^\d+[\s;]/, "int"],
 		[/^"([^\\]+?)"[\s;]/, "string"]
 		[/^$([A-Za-z]+)[\s;]/, "variable"],
-		[/^([A-Za-z]+)\(\)[\s;]/, "function"],
+		[/^([A-Za-z]+)\(\)[\s;]/, "function"]
 	];
 }
 

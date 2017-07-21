@@ -10,8 +10,10 @@ function setConstProperty (obj, name, value) {
 }
 
 function Server () {
+	var self = this;
+	
 	this.process = function (req, res) {
-		return fs.readFileSync(this.processURI(req.url)).toString();
+		return fs.readFileSync(self.processURI(req.url)).toString();
 	};
 	
 	this.processURI = function (uri) {
@@ -19,7 +21,7 @@ function Server () {
 		
 		if (!uri.length) {
 			return "index.nim";
-			//return this.index;
+			//return self.index;
 		}
 		
 		return uri;

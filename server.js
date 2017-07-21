@@ -1,6 +1,6 @@
 const http = require("http");
 const Nim = require("./nim.js");
 
-const parser = new Nim.Parser();
+const server = new Nim.Server();
 
-http.createServer(parser).listen(80);
+http.createServer(server).listen(80);

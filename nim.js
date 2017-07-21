@@ -6,4 +6,6 @@ function Server () {
 	this.index = "index.nim";
 }
 
-module.exports = this;
+module.exports = {
+	Server: Server
+};

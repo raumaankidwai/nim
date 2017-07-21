@@ -43,7 +43,43 @@ function Parser () {
 	
 	// Parses tokenized Nim, level 3
 	this.parse = (tokenizer) => {
-		return tokenizer.tokens.join("\n");
+		var output = "";
+		var token;
+		
+		while (token = tokenizer.get()) {
+			var value = token[0];
+			var type = token[1];
+			
+			switch (type) {
+				case "function":
+					var func = this.functions[value];
+					
+					if (func) {
+						var args = [];
+						
+						for (var i = 0; i < func.args; i ++) {
+							tokenizer.proceed();
+							args.push(tokenizer.get());
+						}
+						
+						output += func.run(args);
+					} else {
+						throw new Error("Undefined function: " + value);
+					}
+				break; default:
+					throw new Error("Unimplemented token type: " + type);
+			}
+			
+			tokenizer.proceed();
+		}
+	};
+	
+	// Functions
+	this.functions = {
+		"print": {
+			args: 1,
+			run: (a) => (a[0] + "\n")
+		}
 	};
 	
 	// Moving on to level 2...
@@ -83,14 +119,23 @@ function Tokenizer () {
 	};
 	
 	// Get token pointed to by current pointer
-	this.getCurrentToken = () => this.tokens[pointer];
+	this.get = () => this.tokens[pointer];
 	
 	// Get token from token array at absolute position
-	this.getTokenAbsolute = (pointer) => this.tokens[pointer];
+	this.abs = (pointer) => this.tokens[pointer];
 	
 	// Get token from token array at relative position
-	// input of -1 will give token before current token
-	this.getTokenRelative = (pointer) => this.tokens[this.pointer + pointer];
+	// input of -2 will give token before Tokenizer.last()
+	this.rel = (pointer) => this.tokens[this.pointer + pointer];
+	
+	// Get next token, equivalent to Tokenizer.getTokenRelative(1)
+	this.next = () => this.tokens[this.pointer + 1];
+	
+	// Get last token, equivalent to Tokenizer.getTokenRelative(-1)
+	this.last = () => this.tokens[this.pointer - 1];
+	
+	// Increment pointer
+	this.proceed = () => ++this.pointer;
 	
 	this.tokens = [];
 	this.pointer = 0;
@@ -100,10 +145,11 @@ function Tokenizer () {
 	// Token type array
 	// Lower index = higher precedence
 	this.types = [
-		[/^\d+[\s;]/, "int"],
+		[/^(\d+)[\s;]/, "int"],
 		[/^"([^\\]+?)"[\s;]/, "string"],
 		[/^$([A-Za-z]+)[\s;]/, "variable"],
-		[/^([A-Za-z]+)\(\)[\s;]/, "function"]
+		[/^([A-Za-z]+)\(\)[\s;]/, "function"],
+		[/^;\s/, "eol"]
 	];
 }
 

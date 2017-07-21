@@ -1,5 +1,12 @@
 const fs = require("fs");
 
+const default_functions = {
+	"print": {
+		args: ["string"],
+		run: (a) => a[0]
+	}
+};
+
 // Level -1       Level 0                         Level 1        Level 2           Level 3
 
 // REQUEST -----> Server.process                  Parser.process                   Parser.parse -----> CLIENT-READY
@@ -89,12 +96,7 @@ function Parser () {
 	};
 	
 	// Functions
-	this.functions = {
-		"print": {
-			args: ["string"],
-			run: (a) => a[0]
-		}
-	};
+	this.functions = default_functions;
 	
 	// Moving on to level 2...
 	this.tokenizer = new Tokenizer();
@@ -135,6 +137,16 @@ function Tokenizer () {
 		}
 		
 		return this;
+	};
+	
+	// Reset tokenizer, we don't want to create new objects every request
+	this.reset = () => {
+		this.tokens = [];
+		this.pointer = 0;
+		this.bpointer = 0;
+		
+		this.raw = "";
+		this.plain = "";
 	};
 	
 	// Get token pointed to by current pointers

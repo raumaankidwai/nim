@@ -65,7 +65,7 @@ function Tokenizer () {
 			while (block.length) {
 				var oblock = block;
 				
-				for (var j = 0; j < types.length; j ++) {
+				for (var j = 0; j < this.types.length; j ++) {
 					block.replace(types[j][0], (a, token) => {
 						this.tokens.push([token, types[j][1]]);
 						return "";

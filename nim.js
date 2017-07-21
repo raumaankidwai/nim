@@ -60,19 +60,17 @@ function Tokenizer () {
 		var blocks = /<!--{\s+([\W\w]+?)\s+}-->/.exec(text).slice(1);
 		
 		for (var i = 0; i < blocks.length; i ++) {
-			var block = blocks[i];
+			var block = blocks[i], l;
 			
-			while (block.length) {
-				var oblock = block;
-				
+			while (l = block.length) {
 				for (var j = 0; j < this.types.length; j ++) {
-					block.replace(types[j][0], (a, token) => {
+					block = block.replace(types[j][0], (a, token) => {
 						this.tokens.push([token, types[j][1]]);
 						return "";
 					});
 				}
 				
-				if (block == oblock) {
+				if (block.length == l) {
 					throw new Error("Unidentifiable token @ `" + block.slice(0, 20) + "`...");
 				}
 			}

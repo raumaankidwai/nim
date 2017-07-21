@@ -46,7 +46,7 @@ function Server () {
 // Parser constructor
 function Parser () {
 	// Interprets Nim-coded HTML, level 1
-	this.process = (text) => this.parse(this.tokenizer.tokenize(text));
+	this.process = (text) => this.parse(this.tokenizer.reset().tokenize(text));
 	
 	// Parses tokenized Nim, level 3
 	this.parse = (tokenizer) => {
@@ -147,6 +147,8 @@ function Tokenizer () {
 		
 		this.raw = "";
 		this.plain = "";
+		
+		return this;
 	};
 	
 	// Get token pointed to by current pointers

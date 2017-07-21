@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-// Level -1       Level 0                         Level 1        Level 2  Level 3  Level 4
+// Level -1       Level 0                         Level 1        Level 2           Level 3
 
 // REQUEST -----> Server.process                  Parser.process                   Parser.parse -----> CLIENT-READY
 //                      |                              ^ |                               ^
@@ -41,20 +41,18 @@ function Parser () {
 	// Interprets Nim-coded HTML, level 1
 	this.process = (text) => this.parse(this.tokenizer.tokenize(text));
 	
-	// Parses tokenized Nim, level 4
+	// Parses tokenized Nim, level 3
 	this.parse = (tokenizer) => {
 		return tokenizer.tokens.join("\n");
 	};
 	
-	// Moving on to level 3...
+	// Moving on to level 2...
 	this.tokenizer = new Tokenizer();
 }
 
 // Tokenizer constructor
 function Tokenizer () {
-	// Tokenizes (lexes, leximizes, lexically analyzes, whatever) Nim-coded HTML:
-	// Scans it, level 2
-	// Evaluates it, level 3
+	// Tokenizes (lexes, leximizes, lexically analyzes, whatever) Nim-coded HTML, level 2
 	this.tokenize = (text) => {
 		this.raw = text;
 		
@@ -64,6 +62,9 @@ function Tokenizer () {
 		for (var i = 0; i < blocks.length; i ++) {
 			var block = blocks[i], l;
 			
+			// Find the first token in the block, remove it, repeat
+			// Notice all the token type regexes start with ^
+			// This is to preserve order and prevent inefficient char-by-char scanning
 			while (l = block.length) {
 				for (var j = 0; j < this.types.length; j ++) {
 					block = block.replace(this.types[j][0], (a, token) => {
@@ -81,6 +82,7 @@ function Tokenizer () {
 		return this;
 	};
 	
+	// Get token pointed to by current pointer
 	this.getCurrentToken = () => this.tokens[pointer];
 	
 	// Get token from token array at absolute position
@@ -95,6 +97,8 @@ function Tokenizer () {
 	
 	this.raw = "";
 	
+	// Token type array
+	// Lower index = higher precedence
 	this.types = [
 		[/^\d+[\s;]/, "int"],
 		[/^"([^\\]+?)"[\s;]/, "string"],
@@ -104,7 +108,7 @@ function Tokenizer () {
 }
 
 module.exports = {
-	Server: Server,
-	Parser: Parser,
-	Tokenizer: Tokenizer
+	NimServer: Server,
+	NimParser: Parser,
+	NimTokenizer: Tokenizer
 };

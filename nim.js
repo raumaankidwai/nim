@@ -13,7 +13,11 @@ function Server () {
 	var self = this;
 	
 	this.process = function (req, res) {
-		return fs.readFileSync(self.processURI(req.url)).toString();
+		res.setHeader("Content-Type", "text/html");
+		
+		res.write(fs.readFileSync(self.processURI(req.url)).toString());
+		
+		res.end();
 	};
 	
 	this.processURI = function (uri) {

@@ -42,7 +42,9 @@ function Parser () {
 	this.process = (text) => this.parse(this.tokenizer.tokenize(text));
 	
 	// Parses tokenized Nim, level 4
-	this.parse = (tokenizer) => tokenizer.raw;
+	this.parse = (tokenizer) => {
+		return tokenizer.tokens.join("\n");
+	};
 	
 	// Moving on to level 3...
 	this.tokenizer = new Tokenizer();

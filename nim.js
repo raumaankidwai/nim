@@ -119,10 +119,10 @@ function Tokenizer () {
 	};
 	
 	// Get token pointed to by current pointer
-	this.get = () => this.tokens[pointer];
+	this.get = () => this.tokens[this.pointer];
 	
 	// Get token from token array at absolute position
-	this.abs = (pointer) => this.tokens[pointer];
+	this.abs = (pointer) => this.tokens[this.pointer];
 	
 	// Get token from token array at relative position
 	// input of -2 will give token before Tokenizer.last()

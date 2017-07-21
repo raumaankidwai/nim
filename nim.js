@@ -102,7 +102,7 @@ function Parser () {
 
 // Tokenizer constructor
 function Tokenizer () {
-	// Tokenizes (lexes, leximizes, lexically analyzes, whatever) Nim-coded HTML, level 2
+	// Tokenizes (lexes, lexemizes, lexically analyzes, whatever) Nim-coded HTML, level 2
 	this.tokenize = (text) => {
 		this.raw = text;
 		

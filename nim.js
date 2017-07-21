@@ -57,9 +57,14 @@ function Parser () {
 					if (func) {
 						var args = [];
 						
-						for (var i = 0; i < func.args; i ++) {
+						for (var i = 0; i < func.args.length; i ++) {
 							tokenizer.proceed();
-							args.push(tokenizer.get());
+							
+							if (func.args[i] != tokenizer.get()[1]) {
+								throw new Error("Argument does not match correct type: `" + tokenizer.get()[0] + "` in function `" + value + "` is of type `" + tokenizer.get()[1] + "`, expected `" + func.args[i] + "`");
+							}
+							
+							args.push(tokenizer.get()[0]);
 						}
 						
 						output += func.run(args);
@@ -79,7 +84,7 @@ function Parser () {
 	// Functions
 	this.functions = {
 		"print": {
-			args: 1,
+			args: ["string"],
 			run: (a) => (a[0] + "\n")
 		}
 	};

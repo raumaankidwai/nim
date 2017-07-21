@@ -94,7 +94,8 @@ function Tokenizer () {
 	this.raw = "";
 	
 	this.types = [
-		[/^([A-Za-z]+) /, "function"]
+		[/^([A-Za-z]+)\s/, "function"],
+		[/^"[^\\]+?"\s/, "string"]
 	];
 }
 

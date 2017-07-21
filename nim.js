@@ -10,13 +10,22 @@ function setConstProperty (obj, name, value) {
 }
 
 function Server () {
-	setConstProperty(this, "process", function (req, res) {
+	this.process = function (req, res) {
 		return fs.readFileSync(this.processURI(req.url)).toString();
-	});
+	};
 	
-	setConstProperty(this, "processURI", function (uri) {
-		return url;
-	});
+	this.processURI = function (uri) {
+		uri = uri.slice(1)
+		
+		if (!uri.length) {
+			return "index.nim";
+			//return this.index;
+		}
+		
+		return uri;
+	};
+	
+	this.index = "index.nim";
 }
 
 module.exports = {

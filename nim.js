@@ -47,6 +47,8 @@ function Tokenizer () {
 				return "";
 			});
 		}
+		
+		return this;
 	};
 	
 	this.getToken = (pointer) => {

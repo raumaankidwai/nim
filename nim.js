@@ -35,7 +35,7 @@ function Server () {
 
 function Parser () {
 	this.process = function (text) {
-		
+		return text;
 	};
 }
 

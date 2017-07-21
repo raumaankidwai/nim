@@ -43,39 +43,44 @@ function Parser () {
 	
 	// Parses tokenized Nim, level 3
 	this.parse = (tokenizer) => {
-		var output = "";
-		var token;
+		var output = tokenizer.plain[0];
 		
-		while (token = tokenizer.get()) {
-			var value = token[0];
-			var type = token[1];
-			
-			switch (type) {
-				case "function":
-					var func = this.functions[value];
-					
-					if (func) {
-						var args = [];
-						
-						for (var i = 0; i < func.args.length; i ++) {
-							tokenizer.proceed();
-							
-							if (func.args[i] != tokenizer.get()[1]) {
-								throw new Error("Argument does not match correct type: `" + tokenizer.get()[0] + "` in function `" + value + "` is of type `" + tokenizer.get()[1] + "`, expected `" + func.args[i] + "`");
+		for (var i = 0; i < tokens.length; i ++) {
+			var token;
+
+			while (token = tokenizer.get()) {
+				var value = token[0];
+				var type = token[1];
+
+				switch (type) {
+					case "function":
+						var func = this.functions[value];
+
+						if (func) {
+							var args = [];
+
+							for (var i = 0; i < func.args.length; i ++) {
+								tokenizer.proceed();
+
+								if (func.args[i] != tokenizer.get()[1]) {
+									throw new Error("Argument does not match correct type: `" + tokenizer.get()[0] + "` in function `" + value + "` is of type `" + tokenizer.get()[1] + "`, expected `" + func.args[i] + "`");
+								}
+
+								args.push(tokenizer.get()[0]);
 							}
-							
-							args.push(tokenizer.get()[0]);
+
+							output += func.run(args);
+						} else {
+							throw new Error("Undefined function: " + value);
 						}
-						
-						output += func.run(args);
-					} else {
-						throw new Error("Undefined function: " + value);
-					}
-				break; default:
-					throw new Error("Unimplemented token type: " + type);
+					break; default:
+						throw new Error("Unimplemented token type: " + type);
+				}
+
+				tokenizer.proceed();
 			}
 			
-			tokenizer.proceed();
+			output += tokenizer.plain[i + 1];
 		}
 		
 		return output;
@@ -100,10 +105,15 @@ function Tokenizer () {
 		this.raw = text;
 		
 		// Array of blocks of pure Nim code
-		var blocks = /<!--{\s+([\W\w]+?)\s+}-->/.exec(text).slice(1);
+		var blocks = text.match(/<!--{\s+([\W\w]+?)\s+}-->/).slice(1);
+		
+		// Plain HTML surrounding Nim blocks, to be interleaved with Nim output
+		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{|}-->)/, ""))
 		
 		for (var i = 0; i < blocks.length; i ++) {
 			var block = blocks[i], l;
+			
+			tokens.push([]);
 			
 			// Find the first token in the block, remove it, repeat
 			// Notice all the token type regexes start with ^
@@ -111,7 +121,7 @@ function Tokenizer () {
 			while (l = block.length) {
 				for (var j = 0; j < this.types.length; j ++) {
 					block = block.replace(this.types[j][0], (a, token) => {
-						this.tokens.push([token, this.types[j][1]]);
+						this.tokens[i].push([token, this.types[j][1]]);
 						return "";
 					});
 				}
@@ -125,29 +135,32 @@ function Tokenizer () {
 		return this;
 	};
 	
-	// Get token pointed to by current pointer
-	this.get = () => this.tokens[this.pointer];
+	// Get token pointed to by current pointers
+	this.get = () => this.tokens[this.bpointer][this.pointer];
 	
-	// Get token from token array at absolute position
-	this.abs = (pointer) => this.tokens[this.pointer];
+	// Get next token
+	this.next = () => this.tokens[this.bpointer][this.pointer + 1];
 	
-	// Get token from token array at relative position
-	// input of -2 will give token before Tokenizer.last()
-	this.rel = (pointer) => this.tokens[this.pointer + pointer];
+	// Get next block
+	this.bnext = () => this.tokens[this.bpointer + 1];
 	
-	// Get next token, equivalent to Tokenizer.getTokenRelative(1)
-	this.next = () => this.tokens[this.pointer + 1];
+	// Get last token
+	this.last = () => this.tokens[this.bpointer][this.pointer - 1];
 	
-	// Get last token, equivalent to Tokenizer.getTokenRelative(-1)
-	this.last = () => this.tokens[this.pointer - 1];
+	// Get last block
+	this.blast = () => this.tokens[this.bpointer - 1];
 	
 	// Increment pointer
 	this.proceed = () => ++this.pointer;
+	this.bproceed = () => (this.pointer = 0, ++this.bpointer);
 	
+	// Tokens array, Array of arrays of tuples, each array element is a list of tokens of a block
 	this.tokens = [];
 	this.pointer = 0;
+	this.bpointer = 0;
 	
 	this.raw = "";
+	this.plain = "";
 	
 	// Token type array
 	// Lower index = higher precedence

@@ -72,6 +72,8 @@ function Parser () {
 			
 			tokenizer.proceed();
 		}
+		
+		return output;
 	};
 	
 	// Functions

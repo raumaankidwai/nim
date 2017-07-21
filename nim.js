@@ -1,5 +1,9 @@
 const fs = require("fs");
 
+// REQUEST -----> Server.process                  Parser.process                   Parser.parse -----> CLIENT-READY
+//                      |                              ^ |                               ^
+//                      |-----> Server.processURI -----| |-----> Tokenizer.tokenize -----|
+
 function Server () {
 	this.process = (req, res) => {
 		res.setHeader("Content-Type", "text/html");
@@ -40,13 +44,7 @@ function Tokenizer () {
 	this.tokenize = (text) => {
 		this.raw = text;
 		
-		for (var i = 0; i < this.types.length; i ++) {
-			var type = this.types[i];
-			
-			text = text.replace(type[0], (a, token) => {
-				return "";
-			});
-		}
+		var blocks = /<!--{\s+([\W\w]+?)\s+}-->/.exec(text).slice(1);
 		
 		return this;
 	};

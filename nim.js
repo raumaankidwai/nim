@@ -1,4 +1,4 @@
-function Parser () {
+function Server () {
 	this = function (req, res) {
 		console.log(req.headers);
 	};

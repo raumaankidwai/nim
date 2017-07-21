@@ -45,7 +45,7 @@ function Parser () {
 	this.parse = (tokenizer) => {
 		var output = tokenizer.plain[0];
 		
-		for (var i = 0; i < tokens.length; i ++) {
+		for (var i = 0; i < tokenizer.tokens.length; i ++) {
 			var token;
 
 			while (token = tokenizer.get()) {

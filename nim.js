@@ -1,24 +1,15 @@
 const fs = require("fs");
 
-function setConstProperty (obj, name, value) {
-	Object.defineProperty(obj, name, {
-		value: value,
-		writable: false,
-		enumerable: true,
-		configurable: true
-	});
-}
-
 function Server () {
-	this.process = function (req, res) {
+	this.process = (req, res) => {
 		res.setHeader("Content-Type", "text/html");
 		
 		res.write(this.parser.process(fs.readFileSync(this.processURI(req.url)).toString()));
 		
 		res.end();
-	}.bind(this);
+	};
 	
-	this.processURI = function (uri) {
+	this.processURI = (uri) => {
 		uri = uri.slice(1)
 		
 		if (!uri.length) {
@@ -26,7 +17,7 @@ function Server () {
 		}
 		
 		return uri;
-	}.bind(this);
+	};
 	
 	this.index = "index.nim";
 	
@@ -34,11 +25,48 @@ function Server () {
 }
 
 function Parser () {
-	this.process = function (text) {
-		return text;
+	this.process = (text) => {
+		return this.parse(this.tokenizer.tokenize(text));
 	};
+	
+	this.parse = (tokenizer) => {
+		return tokenizer.raw;
+	};
+	
+	this.tokenizer = new Tokenizer();
+}
+
+function Tokenizer () {
+	this.tokenize = (text) => {
+		this.raw = text;
+		
+		for (var i = 0; i < this.types.length; i ++) {
+			var type = this.types[i];
+			
+			text = text.replace(type[0], (a, token) => {
+				return "";
+			});
+		}
+	};
+	
+	this.getToken = (pointer) => {
+		return this.tokens[pointer];
+	};
+	
+	this.getTokenRelative = (pointer) => {
+		return this.tokens[this.pointer + pointer];
+	};
+	
+	this.tokens = [];
+	this.pointer = 0;
+	
+	this.raw = "";
+	
+	this.types = 
 }
 
 module.exports = {
-	Server: Server
+	Server: Server,
+	Parser: Parser,
+	Tokenizer: Tokenizer
 };

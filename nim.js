@@ -85,7 +85,7 @@ function Parser () {
 	this.functions = {
 		"print": {
 			args: ["string"],
-			run: (a) => (a[0] + "\n")
+			run: (a) => a[0]
 		}
 	};
 	

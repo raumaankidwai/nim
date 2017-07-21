@@ -80,6 +80,8 @@ function Parser () {
 				tokenizer.proceed();
 			}
 			
+			tokenizer.bproceed();
+			
 			output += tokenizer.plain[i + 1];
 		}
 		

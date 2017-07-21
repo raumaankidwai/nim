@@ -113,7 +113,7 @@ function Tokenizer () {
 		for (var i = 0; i < blocks.length; i ++) {
 			var block = blocks[i], l;
 			
-			tokens.push([]);
+			this.tokens.push([]);
 			
 			// Find the first token in the block, remove it, repeat
 			// Notice all the token type regexes start with ^

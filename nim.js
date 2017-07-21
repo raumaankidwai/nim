@@ -82,8 +82,7 @@ function Parser () {
 			
 			tokenizer.bproceed();
 			
-			console.log(i);
-			output += tokenizer.plain[i + 1];
+			output += tokenizer.plain[i];
 		}
 		
 		return output;

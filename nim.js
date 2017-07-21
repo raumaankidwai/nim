@@ -95,7 +95,7 @@ function Tokenizer () {
 	
 	this.types = [
 		[/^\d+[\s;]/, "int"],
-		[/^"([^\\]+?)"[\s;]/, "string"]
+		[/^"([^\\]+?)"[\s;]/, "string"],
 		[/^$([A-Za-z]+)[\s;]/, "variable"],
 		[/^([A-Za-z]+)\(\)[\s;]/, "function"]
 	];

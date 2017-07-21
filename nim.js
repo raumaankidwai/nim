@@ -62,7 +62,9 @@ function Tokenizer () {
 	
 	this.raw = "";
 	
-	this.types = 
+	this.types = [
+		[/^([A-Za-z]) /, "function"]
+	];
 }
 
 module.exports = {

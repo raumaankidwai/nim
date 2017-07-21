@@ -1,5 +1,5 @@
 function Server () {
-	this = function (req, res) {
+	this.call = function (req, res) {
 		console.log(req.headers);
 	};
 	

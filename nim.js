@@ -150,7 +150,7 @@ function Tokenizer () {
 			
 			this.tokens[i] = block;
 		}
-		
+		console.log("%j", this.tokens);
 		// Split tokens on EOL
 		var t = [];
 		var n = [];

@@ -96,7 +96,7 @@ function Tokenizer () {
 	};
 	
 	this.tokenizeBlock = (block) => {
-		var l, tokens;
+		var l, tokens = [];
 		
 		// Find the first token in the block, remove it, repeat
 		// Notice all the token type regexes start with ^

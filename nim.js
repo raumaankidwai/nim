@@ -242,12 +242,12 @@ function Tokenizer () {
 	// Token type array
 	// Lower index = higher precedence
 	this.types = [
-		[/^({)\s/, "subs"],
-		[/^(})\s/, "sube"],
-		[/^(\d+)[\s;]/, "int"],
-		[/^"([^\\]+?)"[\s;]/, "string"],
-		[/^$([A-Za-z]+)[\s;]/, "variable"],
-		[/^([A-Za-z]+)\(\)[\s;]/, "function"],
+		[/^({)\s*/, "subs"],
+		[/^(})[\s;]*/, "sube"],
+		[/^(\d+)[\s;]*/, "int"],
+		[/^"([^\\]+?)"[\s;]*/, "string"],
+		[/^$([A-Za-z]+)[\s;]*/, "variable"],
+		[/^([A-Za-z]+)\(\)[\s;]*/, "function"],
 		[/^;\s/, "eol"]
 	];
 }

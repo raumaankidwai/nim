@@ -3,11 +3,11 @@ const fs = require("fs");
 const default_functions = {
 	"print": {
 		args: ["string"],
-		run: (a, o) => o + a[0]
+		run: (a, o) => [a[0], ""]
 	},
 	"epoch": {
 		args: [],
-		run: (a, o) => (new Date().getTime(), o)
+		run: (a, o) => ["", new Date().getTime().toString()]
 	}
 };
 
@@ -82,7 +82,7 @@ function Parser () {
 								args.push(tokenizer.get()[0]);
 							}
 							
-							output = func.run(args, output);
+							output += func.run(args, output)[0];
 						} else {
 							throw new Error("Undefined function: " + value);
 						}
@@ -96,7 +96,6 @@ function Parser () {
 			tokenizer.bproceed();
 			
 			output += tokenizer.plain[i + 1];
-			console.log(3);
 		}
 		
 		return output;

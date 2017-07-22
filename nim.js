@@ -96,6 +96,7 @@ function Parser () {
 			tokenizer.bproceed();
 			
 			output += tokenizer.plain[i + 1];
+			console.log(3);
 		}
 		
 		return output;

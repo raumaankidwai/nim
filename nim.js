@@ -120,10 +120,11 @@ function Tokenizer () {
 		
 		// Array of blocks of pure Nim code
 		var blocks = text.match(/<!--{\s+([\W\w]+?)\s+}-->/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
-		
+		console.log(blocks);
+		console.log("-----");
 		// Plain HTML surrounding Nim blocks, to be interleaved with Nim output
 		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
-		console.log(this.plain);
+		
 		for (var i = 0; i < blocks.length; i ++) {
 			this.tokenizeBlock(blocks[i]);
 		}
@@ -159,34 +160,34 @@ function Tokenizer () {
 			block = this.tokens[i];
 			
 			while (block.map((e) => e[1]).indexOf("subs") > -1) {
-				for (var i = 0; i < block.length; i ++) {
-					if (block[i][1] == "subs") {
+				for (var j = 0; j < block.length; j ++) {
+					if (block[j][1] == "subs") {
 						s ++;
 						
 						var t = [];
 						
 						while (s > 0) {
-							block.splice(i, 1);
+							block.splice(j, 1);
 							
-							if (block[i][1] == "subs") {
+							if (block[j][1] == "subs") {
 								s ++;
-							} else if (block[i][1] == "sube") {
+							} else if (block[j][1] == "sube") {
 								s --;
 								
 								if (s < 1) {
-									block.splice(i, 1);
+									block.splice(j, 1);
 								}
 							} else {
-								t.push(block[i]);
+								t.push(block[j]);
 							}
 						}
 						
-						block = block.slice(0, i).concat([t]).slice(i, block.length);
+						block = block.slice(0, j).concat([t]).slice(j, block.length);
 					}
 				}
 			}
 			
-			console.log(block);
+			this.tokens[i] = block;
 		}
 	};
 	

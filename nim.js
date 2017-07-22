@@ -65,17 +65,7 @@ function Parser () {
 				
 				switch (type) {
 					case "subs":
-						var s = 1;
 						
-						while (s > 0) {
-							tokenizer.proceed();
-							
-							if (tokenizer.get()[1] == "subs") {
-								s ++;
-							} else if (tokenizer.get()[1] == "subs") {
-								s --;
-							}
-						}
 					break; case "function":
 						var func = this.functions[value];
 						

@@ -129,7 +129,7 @@ function Tokenizer () {
 			this.tokenizeBlock(blocks[i]);
 		}
 		
-		console.log(this.plain);
+		console.log(this.tokens);
 		
 		return this;
 	};

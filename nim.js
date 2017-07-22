@@ -3,11 +3,13 @@ const fs = require("fs");
 const default_functions = {
 	"print": {
 		args: ["string"],
-		run: (a, o) => [a[0], ""]
+		ret: ["string"],
+		run: (a, o) => [a[0], a[0]]
 	},
 	"epoch": {
 		args: [],
-		run: (a, o) => ["", new Date().getTime().toString()]
+		ret: ["int"],
+		run: (a, o) => ["", new Date().getTime()]
 	}
 };
 
@@ -60,37 +62,10 @@ function Parser () {
 			var token;
 
 			while (token = tokenizer.get()) {
-				var value = token[0];
-				var type = token[1];
+				var res = this.parseToken(tokenizer.tokens, tokenizer.pointer);
 				
-				switch (type) {
-					case "subs":
-						
-					break; case "function":
-						var func = this.functions[value];
-						
-						if (func) {
-							var args = [];
-							
-							for (var j = 0; j < func.args.length; j ++) {
-								tokenizer.proceed();
-								
-								if (func.args[j] != tokenizer.get()[1]) {
-									throw new Error("Argument does not match correct type: `" + tokenizer.get()[0] + "` in function `" + value + "` is of type `" + tokenizer.get()[1] + "`, expected `" + func.args[j] + "`");
-								}
-								
-								args.push(tokenizer.get()[0]);
-							}
-							
-							output += func.run(args, output)[0];
-						} else {
-							throw new Error("Undefined function: " + value);
-						}
-					break; default:
-						throw new Error("Unimplemented token type: " + type);
-				}
-				
-				tokenizer.proceed();
+				output += res[0];
+				tokenizer.pointer = res[2];
 			}
 			
 			tokenizer.bproceed();
@@ -101,8 +76,56 @@ function Parser () {
 		return output;
 	};
 	
-	this.eval = (tokenizer, token) => {
+	this.parseToken = (tokens, pointer) => {
+		var output = ["", , pointer];
+		var token = tokens[pointer];
 		
+		if (token[0][1]) {
+			var ret;
+			
+			for (var i = 0; i < token.length; i ++) {
+				var res = this.parseToken(token, i);
+				
+				output[0] += res[0];
+				ret = res[1];
+				i = res[2];
+			}
+			
+			console.log(ret);
+			return output;
+		}
+		
+		var value = token[0];
+		var type = token[1];
+		
+		switch (type) {
+			case "function":
+				var func = this.functions[value];
+				
+				if (func) {
+					var args = [];
+					
+					for (var i = 0; i < func.args.length; i ++) {
+						output[2] = ++pointer;
+						token = tokens[pointer];
+						
+						if (func.args[i] != token[1]) {
+							throw new Error("Argument does not match correct type: `" + token[0] + "` in function `" + value + "` is of type `" + token[1] + "`, expected `" + func.args[i] + "`");
+						}
+						
+						args.push(token[0]);
+					}
+					
+					output[0] = func.run(args)[0];
+					output[1] = func.run(args)[1];
+				} else {
+					throw new Error("Undefined function: " + value);
+				}
+			break; default:
+				throw new Error("Unimplemented token type: " + type);
+		}
+		
+		return output;
 	};
 	
 	// Functions
@@ -233,6 +256,7 @@ function Tokenizer () {
 	// Token type array
 	// Lower index = higher precedence
 	this.types = [
+		[/^#(.*)[\r\n]+[\s]*/, "comment"],
 		[/^({)\s*/, "subs"],
 		[/^(})[\s;]*/, "sube"],
 		[/^(\d+)[\s;]*/, "int"],

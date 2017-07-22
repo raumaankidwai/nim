@@ -169,7 +169,7 @@ function Tokenizer () {
 				}
 			}
 		}
-		console.log("%j", t);
+		console.log("%j", this.tokens);
 		if (n.length) {
 			throw new Error("Code block does not end in semicolon.");
 		}

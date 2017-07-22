@@ -56,76 +56,13 @@ function Parser () {
 	
 	// Parses tokenized Nim, level 3
 	this.parse = (tokenizer) => {
-		var output = tokenizer.plain[0];
-		console.log("%j", tokenizer.tokens);
-		for (var i = 0; i < tokenizer.tokens.length; i ++) {
-			var token;
-
-			while (tokenizer.get()) {
-				var res = this.parseToken(tokenizer.tokens[i], tokenizer.pointer);
-				
-				output += res[0];
-				tokenizer.pointer = res[2];
-			}
+		while (tokenizer.get()) {
 			
-			tokenizer.bproceed();
-			
-			output += tokenizer.plain[i + 1];
 		}
-		
-		return output;
 	};
 	
-	this.parseToken = (tokens, pointer) => {
-		var output = ["", , pointer];
-		var token = tokens[pointer];
+	this.parseStatement = (tokenizer) => {
 		
-		if (token[0][1]) {
-			var ret;
-			
-			for (var i = 0; i < token.length; i ++) {
-				var res = this.parseToken(token, i);
-				
-				output[0] += res[0];
-				ret = res[1];
-				i = res[2];
-			}
-			
-			console.log(ret);
-			return output;
-		}
-		
-		var value = token[0];
-		var type = token[1];
-		
-		switch (type) {
-			case "function":
-				var func = this.functions[value];
-				
-				if (func) {
-					var args = [];
-					
-					for (var i = 0; i < func.args.length; i ++) {
-						output[2] = ++pointer;
-						token = tokens[pointer];
-						
-						if (func.args[i] != token[1]) {
-							throw new Error("Argument does not match correct type: `" + token[0] + "` in function `" + value + "` is of type `" + token[1] + "`, expected `" + func.args[i] + "`");
-						}
-						
-						args.push(token[0]);
-					}
-					
-					output[0] = func.run(args)[0];
-					output[1] = func.run(args)[1];
-				} else {
-					throw new Error("Undefined function: " + value);
-				}
-			break; default:
-				throw new Error("Unimplemented token type: " + type);
-		}
-		
-		return output;
 	};
 	
 	// Functions
@@ -178,6 +115,7 @@ function Tokenizer () {
 		}
 		
 		// TODO: Optimize (so bad)
+		// Turns [..., [*, "subs"], ..., [*, "sube"], ...] into [..., [...], ...]
 		for (var i = 0; i < this.tokens.length; i ++) {
 			block = this.tokens[i];
 			var s = 0;
@@ -212,13 +150,36 @@ function Tokenizer () {
 			
 			this.tokens[i] = block;
 		}
+		
+		// Split tokens on EOL
+		var t = [];
+		var n = [];
+		
+		for (var i = 0; i < this.tokens.length; i ++) {
+			for (var j = 0; j < this.tokens[i].length; j ++) {
+				var token = this.tokens[i][j];
+				
+				if (token[1] == "eol") {
+					t.push(n);
+					n = [];
+				} else {
+					n.push(token);
+				}
+			}
+		}
+		
+		if (n.length) {
+			throw new Error("Code block does not end in semicolon.");
+		}
+		
+		this.tokens = t;
+		
+		console.log(t);
 	};
 	
 	// Reset tokenizer, we don't want to create new objects every request
 	this.reset = () => {
 		this.tokens = [];
-		this.pointer = 0;
-		this.bpointer = 0;
 		
 		this.raw = "";
 		this.plain = "";
@@ -226,29 +187,12 @@ function Tokenizer () {
 		return this;
 	};
 	
-	// Get token pointed to by current pointers
-	this.get = () => this.tokens[this.bpointer][this.pointer];
-	
-	// Get next token
-	this.next = () => this.tokens[this.bpointer][this.pointer + 1];
-	
-	// Get next block
-	this.bnext = () => this.tokens[this.bpointer + 1];
-	
-	// Get last token
-	this.last = () => this.tokens[this.bpointer][this.pointer - 1];
-	
-	// Get last block
-	this.blast = () => this.tokens[this.bpointer - 1];
-	
-	// Increment pointer
-	this.proceed = () => ++this.pointer;
-	this.bproceed = () => (this.pointer = 0, ++this.bpointer);
-	
-	// Tokens array, Array of arrays of tuples, each array element is a list of tokens of a block
+	// Tokens array, Array of arrays of arrays of (tuples or arrays of tuples)
+	// Each tuple is a token, each array of tuples at this level is a code block {...}
+	// Each array of tuples is a statement ...;
+	// Each array of statements is a Nim block <!--{...}-->
+	// The array of Nim blocks is this.tokens
 	this.tokens = [];
-	this.pointer = 0;
-	this.bpointer = 0;
 	
 	this.raw = "";
 	this.plain = "";

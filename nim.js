@@ -204,11 +204,11 @@ function Tokenizer () {
 	this.types = [
 		[/^#(.*)[\r\n]+[\s]*/, "comment"],
 		[/^({)\s*/, "subs"],
-		[/^(})[\s;]*/, "sube"],
-		[/^(\d+)[\s;]*/, "int"],
-		[/^"([^\\]+?)"[\s;]*/, "string"],
-		[/^$([A-Za-z]+)[\s;]*/, "variable"],
-		[/^([A-Za-z]+)\(\)[\s;]*/, "function"],
+		[/^(})[\s]*/, "sube"],
+		[/^(\d+)[\s]*/, "int"],
+		[/^"([^\\]+?)"[\s]*/, "string"],
+		[/^$([A-Za-z]+)[\s]*/, "variable"],
+		[/^([A-Za-z]+)\(\)[\s]*/, "function"],
 		[/^(;)\s/, "eol"]
 	];
 }

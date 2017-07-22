@@ -132,7 +132,7 @@ function Tokenizer () {
 		var blocks = text.match(/<!--{\s+([\W\w]+?)\s+}-->/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
 		
 		// Plain HTML surrounding Nim blocks, to be interleaved with Nim output
-		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{\s+|\s+}-->)/g, ""));
+		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
 		console.log(this.plain);
 		for (var i = 0; i < blocks.length; i ++) {
 			this.tokenizeBlock(blocks[i]);

@@ -4,5 +4,5 @@
 
 The UNIX epoch time is 
 <!--{
-	print() {epoch()}
+	print() {epoch()};
 }-->

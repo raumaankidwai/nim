@@ -152,7 +152,7 @@ function Tokenizer () {
 		while (l = block.length) {
 			for (var j = 0; j < this.types.length; j ++) {
 				block = block.replace(this.types[j][0], (a, token) => {
-					this.tokens[i].push([token, this.types[j][1]]);
+					this.tokens[this.tokens.length - 1].push([token, this.types[j][1]]);
 					return "";
 				});
 			}

@@ -168,34 +168,36 @@ function Tokenizer () {
 		for (var i = 0; i < this.tokens.length; i ++) {
 			block = this.tokens[i];
 			
-		while (block.map((e) => e[1]).indexOf("subs") > -1) {
-			for (var i = 0; i < block.length; i ++) {
-				if (block[i][1] == "subs") {
-					s ++;
-					
-					var t = [];
-					
-					while (s > 0) {
-						block.splice(i, 1);
+			while (block.map((e) => e[1]).indexOf("subs") > -1) {
+				for (var i = 0; i < block.length; i ++) {
+					if (block[i][1] == "subs") {
+						s ++;
 						
-						if (block[i][1] == "subs") {
-							s ++;
-						} else if (block[i][1] == "sube") {
-							s --;
+						var t = [];
+						
+						while (s > 0) {
+							block.splice(i, 1);
 							
-							if (s < 1) {
-								block.splice(i, 1);
+							if (block[i][1] == "subs") {
+								s ++;
+							} else if (block[i][1] == "sube") {
+								s --;
+								
+								if (s < 1) {
+									block.splice(i, 1);
+								}
+							} else {
+								t.push(block[i]);
 							}
-						} else {
-							t.push(block[i]);
 						}
+						
+						block = block.slice(0, i).concat([t]).slice(i, block.length);
 					}
-					
-					block = block.slice(0, i).concat([t]).slice(i, block.length);
 				}
 			}
 		}
-		}
+		
+		console.log(this.tokens);
 	};
 	
 	// Reset tokenizer, we don't want to create new objects every request

@@ -105,7 +105,7 @@ function Parser () {
 			
 			tokenizer.bproceed();
 			
-			output += tokenizer.plain[i];
+			output += tokenizer.plain[i + 1];
 		}
 		
 		return output;
@@ -129,10 +129,10 @@ function Tokenizer () {
 		this.raw = text;
 		
 		// Array of blocks of pure Nim code
-		var blocks = text.match(/<!--{\s+([\W\w]+?)\s+}-->/g).slice(1);
+		var blocks = text.match(/<!--{\s+([\W\w]+?)\s+}-->/g);
 		
 		// Plain HTML surrounding Nim blocks, to be interleaved with Nim output
-		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{|}-->)/, ""))
+		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{|}-->)/, ""));
 		
 		for (var i = 0; i < blocks.length; i ++) {
 			this.tokenizeBlock(blocks[i]);

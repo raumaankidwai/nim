@@ -61,8 +61,8 @@ function Parser () {
 		for (var i = 0; i < tokenizer.tokens.length; i ++) {
 			var token;
 
-			while (token = tokenizer.get()) {
-				var res = this.parseToken(tokenizer.tokens, tokenizer.pointer);
+			while (tokenizer.get()) {
+				var res = this.parseToken(tokenizer.tokens[i], tokenizer.pointer);
 				
 				output += res[0];
 				tokenizer.pointer = res[2];
@@ -122,7 +122,6 @@ function Parser () {
 					throw new Error("Undefined function: " + value);
 				}
 			break; default:
-				console.log(token);
 				throw new Error("Unimplemented token type: " + type);
 		}
 		

@@ -195,9 +195,9 @@ function Tokenizer () {
 					}
 				}
 			}
+			
+			console.log(block);
 		}
-		
-		console.log(this.tokens);
 	};
 	
 	// Reset tokenizer, we don't want to create new objects every request

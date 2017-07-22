@@ -25,7 +25,11 @@ function Server () {
 	this.process = (req, res) => {
 		res.setHeader("Content-Type", "text/html");
 		
-		res.write(this.parser.process(fs.readFileSync(this.processURI(req.url)).toString()));
+		if (/.nim$/.test(req.url)) {
+			res.write(this.parser.process(fs.readFileSync(this.processURI(req.url)).toString()));
+		} else {
+			res.write(fs.readFileSync(this.processURI(req.url)));
+		}
 		
 		res.end();
 	};
@@ -40,6 +44,12 @@ function Server () {
 		}
 		
 		return uri;
+	};
+	
+	// Initialize server
+	// Just runs tests to make sure Nim code is valid
+	this.init = () => {
+		
 	};
 	
 	// Index file

@@ -120,8 +120,7 @@ function Tokenizer () {
 		
 		// Array of blocks of pure Nim code
 		var blocks = text.match(/<!--{\s+([\W\w]+?)\s+}-->/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
-		console.log(blocks);
-		console.log("-----");
+		
 		// Plain HTML surrounding Nim blocks, to be interleaved with Nim output
 		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
 		
@@ -129,7 +128,7 @@ function Tokenizer () {
 			this.tokenizeBlock(blocks[i]);
 		}
 		
-		console.log(this.tokens);
+		console.log("%j", this.tokens);
 		
 		return this;
 	};

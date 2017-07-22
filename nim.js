@@ -169,12 +169,14 @@ function Tokenizer () {
 				}
 			}
 		}
-		console.log("%j", this.tokens);
+		
 		if (n.length) {
 			throw new Error("Code block does not end in semicolon.");
 		}
 		
 		this.tokens = t;
+		
+		console.log("%j", this.tokens);
 	};
 	
 	// Reset tokenizer, we don't want to create new objects every request
@@ -207,7 +209,7 @@ function Tokenizer () {
 		[/^"([^\\]+?)"[\s;]*/, "string"],
 		[/^$([A-Za-z]+)[\s;]*/, "variable"],
 		[/^([A-Za-z]+)\(\)[\s;]*/, "function"],
-		[/^;\s/, "eol"]
+		[/^(;)\s/, "eol"]
 	];
 }
 

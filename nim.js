@@ -3,7 +3,7 @@ const fs = require("fs");
 const default_functions = {
 	"print": {
 		args: ["string"],
-		run: (a, o) => o += a[0]
+		run: (a, o) => o + a[0]
 	},
 	"epoch": {
 		args: [],
@@ -82,7 +82,7 @@ function Parser () {
 								args.push(tokenizer.get()[0]);
 							}
 							
-							output += func.run(args, output);
+							output = func.run(args, output);
 						} else {
 							throw new Error("Undefined function: " + value);
 						}

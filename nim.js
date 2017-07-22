@@ -122,6 +122,7 @@ function Parser () {
 					throw new Error("Undefined function: " + value);
 				}
 			break; default:
+				console.log(token);
 				throw new Error("Unimplemented token type: " + type);
 		}
 		

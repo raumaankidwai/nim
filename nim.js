@@ -72,11 +72,11 @@ function Parser () {
 						if (func) {
 							var args = [];
 							
-							for (var i = 0; i < func.args.length; i ++) {
+							for (var j = 0; j < func.args.length; j ++) {
 								tokenizer.proceed();
 								
-								if (func.args[i] != tokenizer.get()[1]) {
-									throw new Error("Argument does not match correct type: `" + tokenizer.get()[0] + "` in function `" + value + "` is of type `" + tokenizer.get()[1] + "`, expected `" + func.args[i] + "`");
+								if (func.args[j] != tokenizer.get()[1]) {
+									throw new Error("Argument does not match correct type: `" + tokenizer.get()[0] + "` in function `" + value + "` is of type `" + tokenizer.get()[1] + "`, expected `" + func.args[j] + "`");
 								}
 								
 								args.push(tokenizer.get()[0]);
@@ -96,9 +96,6 @@ function Parser () {
 			tokenizer.bproceed();
 			
 			output += tokenizer.plain[i + 1];
-			console.log(i + 1);
-			console.log(tokenizer.plain);
-			console.log(output);
 		}
 		
 		return output;

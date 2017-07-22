@@ -55,7 +55,7 @@ function Parser () {
 	// Parses tokenized Nim, level 3
 	this.parse = (tokenizer) => {
 		var output = tokenizer.plain[0];
-		console.log(tokenizer.plain);
+		
 		for (var i = 0; i < tokenizer.tokens.length; i ++) {
 			var token;
 
@@ -82,7 +82,7 @@ function Parser () {
 								args.push(tokenizer.get()[0]);
 							}
 							
-							output = func.run(args, output);
+							output += func.run(args, output);
 						} else {
 							throw new Error("Undefined function: " + value);
 						}

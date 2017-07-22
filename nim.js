@@ -156,25 +156,25 @@ function Tokenizer () {
 		var n = [];
 		
 		for (var i = 0; i < this.tokens.length; i ++) {
+			t.push([]);
+			
 			for (var j = 0; j < this.tokens[i].length; j ++) {
 				var token = this.tokens[i][j];
 				
 				if (token[1] == "eol") {
-					t.push(n);
+					t[i].push(n);
 					n = [];
 				} else {
 					n.push(token);
 				}
 			}
 		}
-		
+		console.log(t);
 		if (n.length) {
 			throw new Error("Code block does not end in semicolon.");
 		}
 		
 		this.tokens = t;
-		
-		console.log(t);
 	};
 	
 	// Reset tokenizer, we don't want to create new objects every request

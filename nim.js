@@ -155,11 +155,10 @@ function Tokenizer () {
 			}
 		}
 		
-		var s = 0;
-		
 		// TODO: Optimize (so bad)
 		for (var i = 0; i < this.tokens.length; i ++) {
 			block = this.tokens[i];
+			var s = 0;
 			
 			while (block.map((e) => e[1]).indexOf("subs") > -1) {
 				for (var j = 0; j < block.length; j ++) {
@@ -184,7 +183,7 @@ function Tokenizer () {
 							}
 						}
 						
-						block = block.slice(0, j).concat([t]).slice(j, block.length);
+						block = block.slice(0, j).concat([t]).concat(block.slice(j, block.length));
 					}
 				}
 			}

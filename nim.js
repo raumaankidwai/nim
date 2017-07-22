@@ -158,7 +158,7 @@ function Tokenizer () {
 		var s = 0;
 		
 		// TODO: Optimize (so bad)
-		/*for (var i = 0; i < this.tokens.length; i ++) {
+		for (var i = 0; i < this.tokens.length; i ++) {
 			block = this.tokens[i];
 			
 			while (block.map((e) => e[1]).indexOf("subs") > -1) {
@@ -190,7 +190,7 @@ function Tokenizer () {
 			}
 			
 			this.tokens[i] = block;
-		}*/
+		}
 	};
 	
 	// Reset tokenizer, we don't want to create new objects every request

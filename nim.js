@@ -168,6 +168,7 @@ function Tokenizer () {
 		for (var i = 0; i < this.tokens.length; i ++) {
 			block = this.tokens[i];
 		while (block.map((e) => e[1]).indexOf("subs") < 0) {
+			console.log(block.join("\n"));
 			for (var i = 0; i < block.length; i ++) {
 				if (block[i][1] == "subs") {
 					s ++;

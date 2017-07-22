@@ -3,7 +3,11 @@ const fs = require("fs");
 const default_functions = {
 	"print": {
 		args: ["string"],
-		run: (a) => a[0]
+		run: (a, o) => o += a[0]
+	},
+	"epoch": {
+		args: [],
+		run: (a, o) => (new Date().getTime(), o)
 	}
 };
 
@@ -58,32 +62,44 @@ function Parser () {
 			while (token = tokenizer.get()) {
 				var value = token[0];
 				var type = token[1];
-
+				
 				switch (type) {
-					case "function":
+					case "subs":
+						var s = 1;
+						
+						while (s > 0) {
+							tokenizer.proceed();
+							
+							if (tokenizer.get()[1] == "subs") {
+								s ++;
+							} else if (tokenizer.get()[1] == "subs") {
+								s --;
+							}
+						}
+					break; case "function":
 						var func = this.functions[value];
-
+						
 						if (func) {
 							var args = [];
-
+							
 							for (var i = 0; i < func.args.length; i ++) {
 								tokenizer.proceed();
-
+								
 								if (func.args[i] != tokenizer.get()[1]) {
 									throw new Error("Argument does not match correct type: `" + tokenizer.get()[0] + "` in function `" + value + "` is of type `" + tokenizer.get()[1] + "`, expected `" + func.args[i] + "`");
 								}
-
+								
 								args.push(tokenizer.get()[0]);
 							}
-
-							output += func.run(args);
+							
+							output = func.run(args, output);
 						} else {
 							throw new Error("Undefined function: " + value);
 						}
 					break; default:
 						throw new Error("Unimplemented token type: " + type);
 				}
-
+				
 				tokenizer.proceed();
 			}
 			
@@ -93,6 +109,10 @@ function Parser () {
 		}
 		
 		return output;
+	};
+	
+	this.eval = (tokenizer, token) => {
+		
 	};
 	
 	// Functions
@@ -115,28 +135,63 @@ function Tokenizer () {
 		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{|}-->)/, ""))
 		
 		for (var i = 0; i < blocks.length; i ++) {
-			var block = blocks[i], l;
-			
-			this.tokens.push([]);
-			
-			// Find the first token in the block, remove it, repeat
-			// Notice all the token type regexes start with ^
-			// This is to preserve order and prevent inefficient char-by-char scanning
-			while (l = block.length) {
-				for (var j = 0; j < this.types.length; j ++) {
-					block = block.replace(this.types[j][0], (a, token) => {
-						this.tokens[i].push([token, this.types[j][1]]);
-						return "";
-					});
-				}
-				
-				if (block.length == l) {
-					throw new Error("Unidentifiable token @ `" + block.slice(0, 20) + "`...");
-				}
-			}
+			this.tokenizeBlock(blocks[i]);
 		}
 		
 		return this;
+	};
+	
+	this.tokenizeBlock = (block) => {
+		var l;
+		
+		this.tokens.push([]);
+		
+		// Find the first token in the block, remove it, repeat
+		// Notice all the token type regexes start with ^
+		// This is to preserve order and prevent inefficient char-by-char scanning
+		while (l = block.length) {
+			for (var j = 0; j < this.types.length; j ++) {
+				block = block.replace(this.types[j][0], (a, token) => {
+					this.tokens[i].push([token, this.types[j][1]]);
+					return "";
+				});
+			}
+			
+			if (block.length == l) {
+				throw new Error("Unidentifiable token @ `" + block.slice(0, 20) + "`...");
+			}
+		}
+		
+		var s = 0;
+		
+		// TODO: Optimize (so bad)
+		while (block.map((e) => e[1]).indexOf("subs") < 0) {
+			for (var i = 0; i < block.length; i ++) {
+				if (block[i][1] == "subs") {
+					s ++;
+					
+					var t = [];
+					
+					while (s > 0) {
+						block.splice(i, 1);
+						
+						if (block[i][1] == "subs") {
+							s ++;
+						} else if (block[i][1] == "sube") {
+							s --;
+							
+							if (s < 1) {
+								block.splice(i, 1);
+							}
+						} else {
+							t.push(block[i]);
+						}
+					}
+					
+					block = block.slice(0, i).concat([t]).slice(i, block.length);
+				}
+			}
+		}
 	};
 	
 	// Reset tokenizer, we don't want to create new objects every request
@@ -181,6 +236,8 @@ function Tokenizer () {
 	// Token type array
 	// Lower index = higher precedence
 	this.types = [
+		[/^({)\s/, "subs"],
+		[/^(})\s/, "sube"],
 		[/^(\d+)[\s;]/, "int"],
 		[/^"([^\\]+?)"[\s;]/, "string"],
 		[/^$([A-Za-z]+)[\s;]/, "variable"],

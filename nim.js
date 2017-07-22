@@ -52,7 +52,7 @@ function Server () {
 // Parser constructor
 function Parser () {
 	// Interprets Nim-coded HTML, level 1
-	this.process = (text) => this.parse(this.tokenizer.reset().tokenize(text));
+	this.process = (text) => this.parse(this.tokenizer.tokenize(text));
 	
 	// Parses tokenized Nim, level 3
 	this.parse = (tokenizer) => {
@@ -76,6 +76,8 @@ function Parser () {
 function Tokenizer () {
 	// Tokenizes (lexes, lexemizes, lexically analyzes, whatever) Nim-coded HTML, level 2
 	this.tokenize = (text) => {
+		this.reset();
+		
 		this.raw = text;
 		
 		// Array of blocks of pure Nim code
@@ -85,7 +87,7 @@ function Tokenizer () {
 		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
 		
 		for (var i = 0; i < blocks.length; i ++) {
-			this.tokenizeBlock(blocks[i]);
+			this.tokens.push(this.tokenizeBlock(blocks[i]));
 		}
 		
 		console.log("%j", this.tokens);
@@ -94,9 +96,7 @@ function Tokenizer () {
 	};
 	
 	this.tokenizeBlock = (block) => {
-		var l;
-		
-		this.tokens.push([]);
+		var l, tokens;
 		
 		// Find the first token in the block, remove it, repeat
 		// Notice all the token type regexes start with ^
@@ -104,7 +104,7 @@ function Tokenizer () {
 		while (l = block.length) {
 			for (var j = 0; j < this.types.length; j ++) {
 				block = block.replace(this.types[j][0], (a, token) => {
-					this.tokens[this.tokens.length - 1].push([token, this.types[j][1]]);
+					tokens.push([token, this.types[j][1]]);
 					return "";
 				});
 			}
@@ -116,50 +116,46 @@ function Tokenizer () {
 		
 		// TODO: Optimize (so bad)
 		// Turns [..., [*, "subs"], ..., [*, "sube"], ...] into [..., [...], ...]
-		for (var i = 0; i < this.tokens.length; i ++) {
-			block = this.tokens[i];
-			var s = 0;
-			
-			while (block.map((e) => e[1]).indexOf("subs") > -1) {
-				for (var j = 0; j < block.length; j ++) {
-					if (block[j][1] == "subs") {
-						s ++;
+		var s = 0;
+		
+		while (tokens.map((e) => e[1]).indexOf("subs") > -1) {
+			for (var j = 0; j < tokens.length; j ++) {
+				if (tokens[j][1] == "subs") {
+					s ++;
+					
+					var t = [];
+					
+					while (s > 0) {
+						tokens.splice(j, 1);
 						
-						var t = [];
-						
-						while (s > 0) {
-							block.splice(j, 1);
+						if (tokens[j][1] == "subs") {
+							s ++;
+						} else if (tokens[j][1] == "sube") {
+							s --;
 							
-							if (block[j][1] == "subs") {
-								s ++;
-							} else if (block[j][1] == "sube") {
-								s --;
-								
-								if (s < 1) {
-									block.splice(j, 1);
-								}
-							} else {
-								t.push(block[j]);
+							if (s < 1) {
+								tokens.splice(j, 1);
 							}
+						} else {
+							t.push(tokens[j]);
 						}
-						
-						block = block.slice(0, j).concat([t]).concat(block.slice(j, block.length));
 					}
+					
+					tokens = tokens.slice(0, j).concat([t]).concat(tokens.slice(j, tokens.length));
 				}
 			}
-			
-			this.tokens[i] = block;
 		}
-		console.log("%j", this.tokens);
+		
+		console.log("%j", tokens);
 		// Split tokens on EOL
 		var t = [];
 		var n = [];
 		
-		for (var i = 0; i < this.tokens.length; i ++) {
+		for (var i = 0; i < tokens.length; i ++) {
 			t.push([]);
 			
-			for (var j = 0; j < this.tokens[i].length; j ++) {
-				var token = this.tokens[i][j];
+			for (var j = 0; j < tokens[i].length; j ++) {
+				var token = tokens[i][j];
 				
 				if (token[1] == "eol") {
 					t[i].push(n);
@@ -174,9 +170,11 @@ function Tokenizer () {
 			throw new Error("Code block does not end in semicolon.");
 		}
 		
-		this.tokens = t;
+		tokens = t;
 		
-		console.log("%j", this.tokens);
+		console.log("%j", tokens);
+		
+		return tokens;
 	};
 	
 	// Reset tokenizer, we don't want to create new objects every request

@@ -57,7 +57,7 @@ function Parser () {
 	// Parses tokenized Nim, level 3
 	this.parse = (tokenizer) => {
 		var output = tokenizer.plain[0];
-		console.log(tokenizer.tokens);
+		console.log("%j", tokenizer.tokens);
 		for (var i = 0; i < tokenizer.tokens.length; i ++) {
 			var token;
 

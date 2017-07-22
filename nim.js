@@ -129,6 +129,8 @@ function Tokenizer () {
 			this.tokenizeBlock(blocks[i]);
 		}
 		
+		console.log(this.tokens);
+		
 		return this;
 	};
 	

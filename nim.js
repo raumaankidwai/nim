@@ -167,7 +167,7 @@ function Tokenizer () {
 			
 			for (var j = 0; j < tokens[i].length; j ++) {
 				var token = tokens[i][j];
-				
+				console.log(token);
 				if (token[1] == "eol") {
 					t[i].push(n);
 					n = [];

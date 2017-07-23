@@ -101,8 +101,9 @@ function Parser () {
 	// <function> [arg1] [arg2] [...]
 	// <variable> <equals> <int|string|bool>
 	this.parseStatement = (statement) => {
-		console.log("%j", statement);
-		statement = statement.map((e) => Array.isArray(e[0]) ? ["CODE-BLOCKS-NOT-IMPLEMENTED", "string"] : [this.eval(e[0]), e[1]]);
+		var output = "", ret, type, k;
+		
+		statement = statement.map((e) => Array.isArray(e[0]) ? (k = e.map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]), output += k[0], [this.eval(k[1]), k[2]]) : [this.eval(e[0]), e[1]]);
 		
 		switch (statement[0][1]) {
 			case "function":
@@ -121,8 +122,6 @@ function Parser () {
 					for (var i = 0; i < statement.length; i ++) {
 						var arg = statement[i];
 						
-						// if (arg[0][0])
-						
 						if (func.args[i] != arg[1]) {
 							throw new Error("Argument does not match correct type: `" + arg[0] + "` in function `" + name + "` is of type `" + arg[1] + "`, expected `" + func.args[i] + "`");
 						}
@@ -130,7 +129,11 @@ function Parser () {
 						args.push(arg[0]);
 					}
 					
-					return func.run(args);
+					var res = func.run(args);
+					
+					output += res[0];
+					ret = res[1];
+					type = func.ret;
 				} else {
 					throw new Error("Undefined function: " + name);
 				}
@@ -141,10 +144,13 @@ function Parser () {
 				
 				this.variables[statement[0][0]] = statement[2][0];
 				
-				return ["", statement[2][0]];
+				res = statement[2][0];
+				type = statement[2][1];
 			break; default:
 				throw new Error("Invalid statement beginning: " + statement[0][0]);
 		}
+		
+		return [output, ret];
 	};
 	
 	// Evaluate a value, i.e. turn from string into whatever type it has to be
@@ -167,8 +173,7 @@ function Parser () {
 				return val == "true";
 			case "function":
 				return val.substring(0, val.length - 2);
-			default:
-				throw new Error("Impossible valued type: " + type);
+			default: break;
 		}
 	};
 	

@@ -4,9 +4,8 @@
 
 The UNIX epoch time is 
 <!--{
-	print() {
-		$time = { epoch(); };
-	};
+	$time = { epoch(); };
+	print() $time;
 }-->
 
 Again, the epoch time is <!--{ print() $time; }-->

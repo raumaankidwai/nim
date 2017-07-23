@@ -26,7 +26,7 @@ function Server () {
 		res.setHeader("Content-Type", "text/html");
 		
 		if (/.nim$/.test(req.url)) {
-			res.write(this.parser.process((fs.readFileSync(this.processURI(req.url)).toString()));
+			res.write(this.parser.process((fs.readFileSync(this.processURI(req.url)).toString())));
 		} else {
 			res.write(fs.readFileSync(this.processURI(req.url)));
 		}

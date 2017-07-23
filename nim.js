@@ -29,8 +29,10 @@ function Server () {
 	this.process = (req, res) => {
 		res.setHeader("Content-Type", "text/html");
 		
-		if (/.nim$/.test(req.url)) {
-			res.write(this.parser.process((fs.readFileSync(this.processURI(req.url)).toString())));
+		var uri = this.processURI(req.url);
+		
+		if (/.nim$/.test(uri)) {
+			res.write(this.parser.process((fs.readFileSync(uri).toString())));
 		} else {
 			res.write(fs.readFileSync(this.processURI(req.url)));
 		}
@@ -75,7 +77,7 @@ function Parser () {
 	this.parse = (tokenizer) => {
 		var tokens = tokenizer.tokens;
 		var plain = tokenizer.plain;
-		console.log("%j", plain);
+		
 		// output[0] is text printed to page
 		// output[1] is returned value
 		var output = [plain[0], ];

@@ -6,13 +6,11 @@ const fs = require("fs");
 // and a "run" function which returns an array [o, r] where `o` is the printed output and `r` is the return value.
 const default_functions = {
 	"print": {
-		args: ["*"],
-		ret: "string",
+		args: 1,
 		run: (a, o) => [a[0], a[0]]
 	},
 	"epoch": {
-		args: [],
-		ret: "int",
+		args: 0,
 		run: (a, o) => ["", new Date().getTime()]
 	}
 };
@@ -101,9 +99,9 @@ function Parser () {
 	// <function> [arg1] [arg2] [...]
 	// <variable> <equals> <int|string|bool>
 	this.parseStatement = (statement) => {
-		var output = "", ret, type, k;
+		var output = "", ret, k;
 		
-		statement = statement.map((e) => Array.isArray(e[0]) ? (k = e.map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]), output += k[0], [this.eval(k[1]), k[2]]) : [this.eval(e[0]), e[1]]);
+		statement = statement.map((e) => Array.isArray(e[0]) ? (k = e.map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1]]), output += k[0], [this.eval(k[1])]) : [this.eval(e[0]), e[1]]);
 		
 		switch (statement[0][1]) {
 			case "function":
@@ -113,23 +111,11 @@ function Parser () {
 				if (func) {
 					statement = statement.slice(1);
 					
-					if (statement.length != func.args.length) {
+					if (statement.length != func.args) {
 						throw new Error("Incorrect number of arguments: Expected " + func.args.length + " arguments for function `" + name + "` but got " + statement.length);
 					}
 					
-					var args = [];
-					
-					for (var i = 0; i < statement.length; i ++) {
-						var arg = statement[i];
-						
-						if (func.args[i] != arg[1] && func.args[i] != "*") {
-							throw new Error("Argument does not match correct type: `" + arg[0] + "` in function `" + name + "` is of type `" + arg[1] + "`, expected `" + func.args[i] + "`");
-						}
-						
-						args.push(arg[0]);
-					}
-					
-					var res = func.run(args);
+					var res = func.run(statement.map((e) => e[0]));
 					
 					output += res[0];
 					ret = res[1];
@@ -145,12 +131,11 @@ function Parser () {
 				this.variables[statement[0][0]] = statement[2][0];
 				
 				res = statement[2][0];
-				type = statement[2][1];
 			break; default:
 				throw new Error("Invalid statement beginning: " + statement[0][0]);
 		}
 		
-		return [output, ret, type];
+		return [output, ret];
 	};
 	
 	// Evaluate a value, i.e. turn from string into whatever type it has to be

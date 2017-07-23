@@ -129,7 +129,7 @@ function Parser () {
 					
 					return func.run(args);
 				} else {
-					throw new Error("Undefined function: " + value);
+					throw new Error("Undefined function: " + name);
 				}
 			break; case "variable":
 				if (statement[1][1] != "equals") {
@@ -138,7 +138,7 @@ function Parser () {
 				
 				this.variables[statement[0][0]] = statement[2][0];
 			break; default:
-				throw new Error("Invalid statement beginning: " + type);
+				throw new Error("Invalid statement beginning: " + statement[0][0]);
 		}
 	};
 	

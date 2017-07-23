@@ -334,7 +334,7 @@ function Tokenizer () {
 		[/^(\d+)\s*/, "int", /^\d+$/],
 		[/^(".+?[^\\]")\s*/, "string", /^".+?[^\\]"$/],
 		[/^(true|false)\s*/, "bool", /^(true|false)$/],
-		[/^($[A-Za-z]+)\s*/, "variable", /^[A-Za-z]+$/],
+		[/^(\$[A-Za-z]+)\s*/, "variable", /^[A-Za-z]+$/],
 		
 		// Functions
 		[/^([A-Za-z]+\(\))\s*/, "function", /^[A-Za-z]+\(\)$/]

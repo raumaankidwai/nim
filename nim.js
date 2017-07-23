@@ -131,7 +131,7 @@ function Parser () {
 				
 				res = statement[2][0];
 			break; default:
-				throw new Error("Invalid statement beginning: " + statement[0][0]);
+				throw new Error("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")");
 		}
 		
 		return [output, ret];

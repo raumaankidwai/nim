@@ -100,10 +100,9 @@ function Parser () {
 	// <variable> <equals> <int|string|bool>
 	this.parseStatement = (statement) => {
 		var output = "", ret, k;
-		console.log("%j", statement);
+		
 		statement = statement.map((e) => Array.isArray(e[0]) ? (k = e.map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1]]), output += k[0], this.eval(k[1])) : this.eval(e[0]));
-		console.log("%j", statement);
-		console.log("-----");
+		
 		switch (statement[0][1]) {
 			case "function":
 				var name = statement[0][0];
@@ -262,7 +261,6 @@ function Tokenizer () {
 						j ++;
 						
 						if (j >= tokens.length) {
-							console.log("%j", tokens);
 							throw new Error("Code block does not end in semicolon.");
 						}
 					}

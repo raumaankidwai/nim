@@ -259,7 +259,7 @@ function Tokenizer () {
 		
 		// Split code blocks on EOL
 		for (var i = 0; i < tokens.length; i ++) {
-			if (Array.isArray(tokens[i])) {
+			if (Array.isArray(tokens[i][0])) {
 				var t = [];
 				
 				for (var j = 0; j < tokens[i].length; j ++) {

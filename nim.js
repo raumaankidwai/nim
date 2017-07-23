@@ -157,7 +157,7 @@ function Parser () {
 			break; case "bool":
 				val = val == "true";
 			break; case "variable":
-				val = this.variables[val];
+				val = this.variables[val.slice(1)];
 			break; case "function":
 				val = val.substring(0, val.length - 2);
 			default: break;

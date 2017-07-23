@@ -123,12 +123,8 @@ function Parser () {
 				} else {
 					throw new Error("Undefined function: " + name);
 				}
-			break; case "variable":
-				if (statement[1][1] != "equals") {
-					throw new Error("Expected variable assignment: `$" + statement.slice(0, 5).map((e) => "[" + e[1] + "]" + e[0]).join(" "));
-				}
-				
-				this.variables[statement[0][0]] = statement[2][0];
+			break; case "variableSet":
+				this.variables[statement[0][0]] = statement[1][0];
 				
 				res = statement[2][0];
 			break; default:
@@ -156,7 +152,9 @@ function Parser () {
 				val = +val;
 			break; case "bool":
 				val = val == "true";
-			break; case "variable":
+			break; case "variableSet":
+				val = val.slice(1);
+			break; case "variableGet":
 				val = this.variables[val.slice(1)];
 			break; case "function":
 				val = val.substring(0, val.length - 2);
@@ -339,7 +337,7 @@ function Tokenizer () {
 		[/^(\d+)\s*/, "int", /^\d+$/],
 		[/^(".+?[^\\]")\s*/, "string", /^".+?[^\\]"$/],
 		[/^(true|false)\s*/, "bool", /^(true|false)$/],
-		[/^(\$[A-Za-z]+)\s*/, "variable", /^\$[A-Za-z]+$/],
+		[/^(\$[A-Za-z]+)\s*=\s*/, "variable", /^\$[A-Za-z]+$/],
 		
 		// Functions
 		[/^([A-Za-z]+\(\))\s*/, "function", /^[A-Za-z]+\(\)$/]

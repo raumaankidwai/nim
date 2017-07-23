@@ -26,7 +26,7 @@ function Server () {
 		res.setHeader("Content-Type", "text/html");
 		
 		if (/.nim$/.test(req.url)) {
-			res.write(this.parser.process(fs.readFileSync(this.processURI(req.url)).toString()));
+			res.write(this.parser.process((fs.readFileSync(this.processURI(req.url)).toString()));
 		} else {
 			res.write(fs.readFileSync(this.processURI(req.url)));
 		}
@@ -37,7 +37,7 @@ function Server () {
 	// Turn URIs into file locators
 	// TODO: Make an htaccess-like format for this
 	this.processURI = (uri) => {
-		uri = uri.slice(1)
+		uri = uri.slice(1);
 		
 		if (!uri.length) {
 			return this.index;
@@ -48,8 +48,9 @@ function Server () {
 	
 	// Initialize server
 	// Just runs tests to make sure Nim code is valid
+	// TODO: have this check all .nim files in server (sub)*dirs
 	this.init = () => {
-		
+		this.parser.process((fs.readFileSync(this.processURI(req.url)).toString());
 	};
 	
 	// Index file

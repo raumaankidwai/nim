@@ -50,7 +50,7 @@ function Server () {
 	// Just runs tests to make sure Nim code is valid
 	// TODO: have this check all .nim files in server (sub)*dirs
 	this.init = () => {
-		this.parser.process((fs.readFileSync(this.processURI(req.url)).toString());
+		this.parser.process((fs.readFileSync(this.processURI(req.url)).toString()));
 	};
 	
 	// Index file

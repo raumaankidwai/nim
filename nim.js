@@ -151,11 +151,11 @@ function Parser () {
 		switch (type) {
 			case "string":
 				val = val.substring(1, val.length - 1);
-			case "int":
+			break; case "int":
 				val = +val;
-			case "bool":
+			break; case "bool":
 				val = val == "true";
-			case "function":
+			break; case "function":
 				val = val.substring(0, val.length - 2);
 			default: break;
 		}

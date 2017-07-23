@@ -40,7 +40,7 @@ function Server () {
 		uri = uri.slice(1);
 		
 		if (!uri.length) {
-			return this.index;
+			uri = this.index;
 		}
 		
 		return "site/" + uri;

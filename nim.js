@@ -75,7 +75,7 @@ function Parser () {
 	this.parse = (tokenizer) => {
 		var tokens = tokenizer.tokens;
 		var plain = tokenizer.plain;
-		
+		console.log("%j", plain);
 		// output[0] is text printed to page
 		// output[1] is returned value
 		var output = [plain[0], ];
@@ -137,6 +137,8 @@ function Parser () {
 				}
 				
 				this.variables[statement[0][0]] = statement[2][0];
+				
+				return ["", statement[2][0]];
 			break; default:
 				throw new Error("Invalid statement beginning: " + statement[0][0]);
 		}

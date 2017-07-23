@@ -153,7 +153,7 @@ function Parser () {
 			break; case "bool":
 				val = val == "true";
 			break; case "variableSet":
-				val = val.slice(1);
+				val = val.replace(/\s*=\s*/, "").slice(1);
 			break; case "variableGet":
 				val = this.variables[val.slice(1)];
 			break; case "function":
@@ -337,7 +337,8 @@ function Tokenizer () {
 		[/^(\d+)\s*/, "int", /^\d+$/],
 		[/^(".+?[^\\]")\s*/, "string", /^".+?[^\\]"$/],
 		[/^(true|false)\s*/, "bool", /^(true|false)$/],
-		[/^(\$[A-Za-z]+)\s*=\s*/, "variable", /^\$[A-Za-z]+$/],
+		[/^(\$[A-Za-z]+\s*=)\s*/, "variableSet", /^\$[A-Za-z]+\s*=$/],
+		[/^(\$[A-Za-z]+)\s*/, "variableGet", /^\$[A-Za-z]+$/],
 		
 		// Functions
 		[/^([A-Za-z]+\(\))\s*/, "function", /^[A-Za-z]+\(\)$/]

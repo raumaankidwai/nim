@@ -5,7 +5,7 @@
 The UNIX epoch time is 
 <!--{
 	print() {
-		$time = epoch();
+		$time = { epoch(); };
 	};
 }-->
 

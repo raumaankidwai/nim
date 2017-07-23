@@ -159,22 +159,13 @@ function Tokenizer () {
 		
 		// Split tokens on EOL
 		var t = [];
-		var n = [];
 		
 		for (var i = 0; i < tokens.length; i ++) {
 			t.push([]);
 			
-			for (var j = 0; j < tokens[i].length; j ++) {
-				var token = tokens[i][j];
-				
-				if (token[1] == "eol") {
-					t[i].push(n);
-					n = [];
-				} else {
-					n.push(token);
-				}
-				
-				console.log("%j", n);
+			while (tokens[i][1] != "eol") {
+				t[t.length - 1].push(tokens[i]);
+				i ++;
 			}
 		}
 		

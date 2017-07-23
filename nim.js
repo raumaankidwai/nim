@@ -100,8 +100,9 @@ function Parser () {
 	// <variable> <equals> <int|string|bool>
 	this.parseStatement = (statement) => {
 		console.log("%j", statement);
-		console.log("----");
 		statement = statement.map((e) => e[0][0] ? ["CODE-BLOCKS-NOT-IMPLEMENTED", "string"] : [this.eval(e[0]), e[1]]);
+		console.log("%j", statement);
+		console.log("----");
 		
 		switch (statement[0][1]) {
 			case "function":

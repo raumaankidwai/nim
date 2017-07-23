@@ -4,5 +4,9 @@
 
 The UNIX epoch time is 
 <!--{
-	print() {epoch();};
+	print() {
+		epoch();
+	};
 }-->
+
+Click <a href="operations.nim">here</a> to look at operations!<br/>

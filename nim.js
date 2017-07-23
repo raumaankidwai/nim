@@ -57,6 +57,9 @@ function Server () {
 		console.log("Tests succeeded!");
 	};
 	
+	// Absolute directory
+	this.absolute = "/";
+	
 	// Index file
 	this.index = "index.nim";
 	

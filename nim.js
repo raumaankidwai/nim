@@ -101,7 +101,7 @@ function Parser () {
 	this.parseStatement = (statement) => {
 		var output = "", ret, k;
 		
-		statement = statement.map((e) => Array.isArray(e[0]) ? (k = e.map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1]]), output += k[0], [this.eval(k[1])]) : [this.eval(e[0]), e[1]]);
+		statement = statement.map((e) => Array.isArray(e[0]) ? (k = e.map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1]]), output += k[0], this.eval(k[1])) : this.eval(e[0]));
 		
 		switch (statement[0][1]) {
 			case "function":
@@ -119,7 +119,6 @@ function Parser () {
 					
 					output += res[0];
 					ret = res[1];
-					type = func.ret;
 				} else {
 					throw new Error("Undefined function: " + name);
 				}
@@ -151,15 +150,17 @@ function Parser () {
 		
 		switch (type) {
 			case "string":
-				return val.substring(1, val.length - 1);
+				val = val.substring(1, val.length - 1);
 			case "int":
-				return +val;
+				val = +val;
 			case "bool":
-				return val == "true";
+				val = val == "true";
 			case "function":
-				return val.substring(0, val.length - 2);
+				val = val.substring(0, val.length - 2);
 			default: break;
 		}
+		
+		return [val, type];
 	};
 	
 	// Functions

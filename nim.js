@@ -150,7 +150,7 @@ function Parser () {
 				throw new Error("Invalid statement beginning: " + statement[0][0]);
 		}
 		
-		return [output, ret];
+		return [output, ret, type];
 	};
 	
 	// Evaluate a value, i.e. turn from string into whatever type it has to be

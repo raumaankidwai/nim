@@ -101,6 +101,7 @@ function Parser () {
 	// <function> [arg1] [arg2] [...]
 	// <variable> <equals> <int|string|bool>
 	this.parseStatement = (statement) => {
+		console.log("%j", statement);
 		statement = statement.map((e) => Array.isArray(e[0]) ? ["CODE-BLOCKS-NOT-IMPLEMENTED", "string"] : [this.eval(e[0]), e[1]]);
 		
 		switch (statement[0][1]) {
@@ -253,6 +254,28 @@ function Tokenizer () {
 					
 					tokens = tokens.slice(0, j).concat([t]).concat(tokens.slice(j, tokens.length));
 				}
+			}
+		}
+		
+		// Split code blocks on EOL
+		for (var i = 0; i < tokens.length; i ++) {
+			if (Array.isArray(tokens[i])) {
+				var t = [];
+				
+				for (var j = 0; j < tokens[i].length; j ++) {
+					t.push([]);
+					
+					while (tokens[i][j][1] != "eol") {
+						t[t.length - 1].push(tokens[i][j]);
+						j ++;
+						
+						if (j >= tokens.length) {
+							throw new Error("Code block does not end in semicolon.");
+						}
+					}
+				}
+				
+				tokens[i] = t;
 			}
 		}
 		

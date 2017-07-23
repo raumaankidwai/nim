@@ -157,7 +157,6 @@ function Tokenizer () {
 			}
 		}
 		
-		console.log("%j", tokens);
 		// Split tokens on EOL
 		var t = [];
 		var n = [];
@@ -167,13 +166,15 @@ function Tokenizer () {
 			
 			for (var j = 0; j < tokens[i].length; j ++) {
 				var token = tokens[i][j];
-				console.log(token);
+				
 				if (token[1] == "eol") {
 					t[i].push(n);
 					n = [];
 				} else {
 					n.push(token);
 				}
+				
+				console.log("%j", n);
 			}
 		}
 		

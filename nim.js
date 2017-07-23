@@ -144,8 +144,6 @@ function Parser () {
 	
 	// Evaluate a value, i.e. turn from string into whatever type it has to be
 	this.eval = function (val) {
-		if (typeof val
-		
 		var types = this.tokenizer.types, type;
 		
 		for (var i = 0; i < types.length; i ++) {

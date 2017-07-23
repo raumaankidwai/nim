@@ -100,7 +100,7 @@ function Parser () {
 	// <variable> <equals> <int|string|bool>
 	this.parseStatement = (statement) => {
 		statement = statement.map((e) => e[0][0] ? ["CODE-BLOCKS-NOT-IMPLEMENTED", "string"] : [this.eval(e[0]), e[1]]);
-		
+		console.log(statement);
 		switch (statement[0][1]) {
 			case "function":
 				var name = statement[0][0];
@@ -195,8 +195,6 @@ function Tokenizer () {
 			this.tokens.push(this.tokenizeBlock(blocks[i]));
 		}
 		
-		console.log("%j", this.tokens);
-		
 		return this;
 	};
 	
@@ -271,8 +269,6 @@ function Tokenizer () {
 		}
 		
 		tokens = t;
-		
-		console.log("%j", tokens);
 		
 		return tokens;
 	};

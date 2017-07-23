@@ -1,9 +1,7 @@
 const fs = require("fs");
 
 // Functions
-// Each function object has an "args" array describing what type the arguments should be,
-// a "ret" value set to the type of the return value,
-// and a "run" function which returns an array [o, r] where `o` is the printed output and `r` is the return value.
+// Each function object has an "args" array describing the number of arguments and a "run" function which returns an array [o, r] where `o` is the printed output and `r` is the return value.
 const default_functions = {
 	"print": {
 		args: 1,

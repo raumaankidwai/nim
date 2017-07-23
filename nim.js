@@ -99,7 +99,7 @@ function Parser () {
 	// <function> [arg1] [arg2] [...]
 	// <variable> <equals> <int|string|bool>
 	this.parseStatement = (statement) => {
-		statement = statement.map((e) => [this.eval(e[0]), e[1]]);
+		statement = statement.map((e) => e[0][0] ? ["CODE-BLOCKS-NOT-IMPLEMENTED", "string"] : [this.eval(e[0]), e[1]]);
 		
 		switch (statement[0][1]) {
 			case "function":
@@ -144,6 +144,8 @@ function Parser () {
 	
 	// Evaluate a value, i.e. turn from string into whatever type it has to be
 	this.eval = function (val) {
+		if (typeof val
+		
 		var types = this.tokenizer.types, type;
 		
 		for (var i = 0; i < types.length; i ++) {

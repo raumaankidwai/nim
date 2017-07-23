@@ -126,7 +126,7 @@ function Parser () {
 			break; case "variableSet":
 				this.variables[statement[0][0]] = statement[1][0];
 				
-				res = statement[2][0];
+				res = statement[1][0];
 			break; default:
 				throw new Error("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")");
 		}

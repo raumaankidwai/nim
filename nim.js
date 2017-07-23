@@ -260,6 +260,7 @@ function Tokenizer () {
 						j ++;
 						
 						if (j >= tokens.length) {
+							console.log("%j", tokens);
 							throw new Error("Code block does not end in semicolon.");
 						}
 					}

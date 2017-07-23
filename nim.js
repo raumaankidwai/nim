@@ -37,7 +37,7 @@ function Server () {
 	// Turn URIs into file locators
 	// TODO: Make an htaccess-like format for this
 	this.processURI = (uri) => {
-		uri = uri.slice(1);
+		uri = "site" + uri;
 		
 		if (!uri.length) {
 			return this.index;

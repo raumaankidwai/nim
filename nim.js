@@ -166,11 +166,11 @@ function Tokenizer () {
 			while (tokens[i][1] != "eol") {
 				t[t.length - 1].push(tokens[i]);
 				i ++;
+				
+				if (i >= tokens.length) {
+					throw new Error("Code block does not end in semicolon.");
+				}
 			}
-		}
-		
-		if (n.length) {
-			throw new Error("Code block does not end in semicolon.");
 		}
 		
 		tokens = t;

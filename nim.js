@@ -6,7 +6,7 @@ const fs = require("fs");
 // and a "run" function which returns an array [o, r] where `o` is the printed output and `r` is the return value.
 const default_functions = {
 	"print": {
-		args: ["string"],
+		args: ["*"],
 		ret: "string",
 		run: (a, o) => [a[0], a[0]]
 	},
@@ -122,7 +122,7 @@ function Parser () {
 					for (var i = 0; i < statement.length; i ++) {
 						var arg = statement[i];
 						
-						if (func.args[i] != arg[1]) {
+						if (func.args[i] != arg[1] && func.args[i] != "*") {
 							throw new Error("Argument does not match correct type: `" + arg[0] + "` in function `" + name + "` is of type `" + arg[1] + "`, expected `" + func.args[i] + "`");
 						}
 						

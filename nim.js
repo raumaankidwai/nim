@@ -82,7 +82,7 @@ function Parser () {
 		
 		for (var i = 0; i < tokens.length; i ++) {
 			for (var j = 0; j < tokens[i].length; j ++) {
-				var statement = this.parseStatement(tokens[i]);
+				var statement = this.parseStatement(tokens[i][j]);
 				
 				output[0] += statement[0];
 				output[1] = statement[1];
@@ -99,10 +99,8 @@ function Parser () {
 	// <function> [arg1] [arg2] [...]
 	// <variable> <equals> <int|string|bool>
 	this.parseStatement = (statement) => {
-		console.log(statement);
 		statement = statement.map((e) => e[0][0] ? ["CODE-BLOCKS-NOT-IMPLEMENTED", "string"] : [this.eval(e[0]), e[1]]);
-		console.log(statement);
-		console.log("---");
+		
 		switch (statement[0][1]) {
 			case "function":
 				var name = statement[0][0];

@@ -155,6 +155,8 @@ function Parser () {
 				val = +val;
 			break; case "bool":
 				val = val == "true";
+			break; case "variable":
+				val = this.variables[val];
 			break; case "function":
 				val = val.substring(0, val.length - 2);
 			default: break;

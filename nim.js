@@ -147,7 +147,7 @@ function Parser () {
 		var types = this.tokenizer.types, type;
 		
 		for (var i = 0; i < types.length; i ++) {
-			if (types[i][2].test(val)) {
+			if (types[i][2] && types[i][2].test(val)) {
 				type = types[i][1];
 				break;
 			}

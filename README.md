@@ -3,7 +3,7 @@ Server-side language, actually working kinda in 3 days :D.
 
 Not related to *that* Nim.
 
-# Theoretical Syntax
+# Theoretical v1 Syntax
 
 ```
 <!DOCTYPE HTML>

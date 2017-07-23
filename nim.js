@@ -1,14 +1,18 @@
 const fs = require("fs");
 
+// Functions
+// Each function object has an "args" array describing what type the arguments should be,
+// a "ret" value set to the type of the return value,
+// and a "run" function which returns an array [o, r] where `o` is the printed output and `r` is the return value.
 const default_functions = {
 	"print": {
 		args: ["string"],
-		ret: ["string"],
+		ret: "string",
 		run: (a, o) => [a[0], a[0]]
 	},
 	"epoch": {
 		args: [],
-		ret: ["int"],
+		ret: "int",
 		run: (a, o) => ["", new Date().getTime()]
 	}
 };
@@ -51,6 +55,8 @@ function Server () {
 	// TODO: have this check all .nim files in server (sub)*dirs
 	this.init = () => {
 		this.parser.process((fs.readFileSync(this.processURI("/")).toString()));
+		
+		console.log("Tests succeeded!");
 	};
 	
 	// Index file
@@ -63,21 +69,109 @@ function Server () {
 // Parser constructor
 function Parser () {
 	// Interprets Nim-coded HTML, level 1
-	this.process = (text) => this.parse(this.tokenizer.tokenize(text));
+	this.process = (text) => this.parse(this.tokenizer.tokenize(text))[0];
 	
 	// Parses tokenized Nim, level 3
 	this.parse = (tokenizer) => {
-		while (tokenizer.get()) {
+		var tokens = tokenizer.tokens;
+		var plain = tokenizer.plain;
+		
+		// output[0] is text printed to page
+		// output[1] is returned value
+		var output = [plain[0], ];
+		
+		for (var i = 0; i < tokens.length; i ++) {
+			for (var j = 0; j < tokens[i].length; j ++) {
+				var statement = this.parseStatement(tokens[i]);
+				
+				output[0] += statement[0];
+				output[1] = statement[1];
+			}
 			
+			output[0] += plain[i + 1];
+		}
+		
+		return output;
+	};
+	
+	// Parse individual statements
+	// VALID STATEMENTS:
+	// <function> [arg1] [arg2] [...]
+	// <variable> <equals> <int|string|bool>
+	this.parseStatement = (statement) => {
+		statement = statement.map((e) => [this.eval(e[0]), e[1]]);
+		
+		switch (statement[0][1]) {
+			case "function":
+				var name = statement[0][0];
+				var func = this.functions[name];
+				
+				if (func) {
+					statement = statement.slice(1);
+					
+					if (statement.length != func.args.length) {
+						throw new Error("Incorrect number of arguments: Expected " + func.args.length + " arguments for function `" + name + "` but got " + statement.length);
+					}
+					
+					var args = [];
+					
+					for (var i = 0; i < statement.length; i ++) {
+						var arg = statement[i];
+						
+						// if (arg[0][0])
+						
+						if (func.args[i] != arg[1]) {
+							throw new Error("Argument does not match correct type: `" + arg[0] + "` in function `" + name + "` is of type `" + arg[1] + "`, expected `" + func.args[i] + "`");
+						}
+						
+						args.push(arg[0]);
+					}
+					
+					return func.run(args);
+				} else {
+					throw new Error("Undefined function: " + value);
+				}
+			break; case "variable":
+				if (statement[1][1] != "equals") {
+					throw new Error("Expected variable assignment: `$" + statement.slice(0, 5).map((e) => "[" + e[1] + "]" + e[0]).join(" "));
+				}
+				
+				this.variables[statement[0][0]] = statement[2][0];
+			break; default:
+				throw new Error("Invalid statement beginning: " + type);
 		}
 	};
 	
-	this.parseStatement = (tokenizer) => {
+	// Evaluate a value, i.e. turn from string into whatever type it has to be
+	this.eval = function (val) {
+		var types = this.tokenizer.types, type;
 		
+		for (var i = 0; i < types.length; i ++) {
+			if (types[i][2].test(val)) {
+				type = types[i][1];
+				break;
+			}
+		}
+		
+		switch (type) {
+			case "string":
+				return val.substring(1, val.length - 1);
+			case "int":
+				return +val;
+			case "bool":
+				return val == "true";
+			case "function":
+				return val.substring(0, val.length - 2);
+			default:
+				throw new Error("Impossible valued type: " + type);
+		}
 	};
 	
 	// Functions
 	this.functions = default_functions;
+	
+	// Variables
+	this.variables = {};
 	
 	// Moving on to level 2...
 	this.tokenizer = new Tokenizer();
@@ -115,7 +209,10 @@ function Tokenizer () {
 		while (l = block.length) {
 			for (var j = 0; j < this.types.length; j ++) {
 				block = block.replace(this.types[j][0], (a, token) => {
-					tokens.push([token, this.types[j][1]]);
+					if (this.types[j][1] != "comment") {
+						tokens.push([token, this.types[j][1]]);
+					}
+					
 					return "";
 				});
 			}
@@ -202,15 +299,32 @@ function Tokenizer () {
 	
 	// Token type array
 	// Lower index = higher precedence
+	// 0th element: regex to match type and no types below it in Nim
+	// 1st element: name of type
+	// 2nd element: regex to match type and no types below it in tokenized Nim (for Parser.eval)
+	
+	// Ex:
+	// if the "comment" regex was /^./, it would match every type below it
+	// also, it would make everything not work
+	// hence, the rule "match no types below"
 	this.types = [
+		// Comments
 		[/^#(.*)[\r\n]+[\s]*/, "comment"],
+		
+		// Blocks/Syntax
 		[/^({)\s*/, "subs"],
 		[/^(})\s*/, "sube"],
-		[/^(\d+)\s*/, "int"],
-		[/^"([^\\]+?)"\s*/, "string"],
-		[/^$([A-Za-z]+)\s*/, "variable"],
-		[/^([A-Za-z]+)\(\)\s*/, "function"],
-		[/^(;)\s*/, "eol"]
+		[/^(;)\s*/, "eol"],
+		[/^(=)\s*/, "equals", /^=$/],
+		
+		// Types
+		[/^(\d+)\s*/, "int", /^\d+$/],
+		[/^(".+?[^\\]")\s*/, "string", /^".+?[^\\]"$/],
+		[/^(true|false)\s*/, "bool", /^(true|false)$/],
+		[/^($[A-Za-z]+)\s*/, "variable", /^[A-Za-z]+$/],
+		
+		// Functions
+		[/^([A-Za-z]+\(\))\s*/, "function", /^[A-Za-z]+\(\)$/]
 	];
 }
 

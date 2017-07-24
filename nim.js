@@ -186,6 +186,29 @@ function Parser () {
 				this.variables[statement[0][0]] = statement[1][0];
 				
 				res = statement[1][0];
+			break; case "int":
+				case "string":
+				case "bool":
+				if (this.tokenizer.operations.indexOf(statement[1][1]) > -1) {
+					switch (statement[1][1]) {
+						case "plus":
+							return statement[0][0] + statement[2][0];
+						case "minus":
+							return statement[0][0] - statement[2][0];
+						case "times":
+							return statement[0][0] * statement[2][0];
+						case "div":
+							return statement[0][0] / statement[2][0];
+						case "mod":
+							return statement[0][0] % statement[2][0];
+						default:
+							throw new Error("Unimplemented operation: " + statement[1][1]);
+					}
+				} else if (statement[1]) {
+					throw new Error("Expected operation on " + statement[0][1]);
+				} else {
+					res = statement[0];
+				}
 			break; default:
 				throw new Error("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")");
 		}
@@ -371,36 +394,38 @@ function Tokenizer () {
 	this.raw = "";
 	this.plain = "";
 	
-	// Token type array
-	// Lower index = higher precedence
-	// 0th element: regex to match type and no types below it in Nim
-	// 1st element: name of type
-	// 2nd element: regex to match type and no types below it in tokenized Nim (for Parser.eval)
-	
-	// Ex:
-	// if the "comment" regex was /^./, it would match every type below it
-	// also, it would make everything not work
-	// hence, the rule "match no types below"
-	this.types = [
-		// Comments
-		[/^#(.*)[\r\n]+[\s]*/, "comment"],
-		
-		// Blocks/Syntax
+	// Token type arrays
+	this.comments = [
+		[/^#(.*)[\r\n]+[\s]*/, "comment"]
+	];
+	this.syntax = [
 		[/^({)\s*/, "subs"],
 		[/^(})\s*/, "sube"],
 		[/^(;)\s*/, "eol"],
-		[/^(=)\s*/, "equals", /^=$/],
-		
-		// Types
+		[/^(=)\s*/, "equals", /^=$/]
+	];
+	this.operations = [
+		[/^(\+)\s*/, "plus", /^\+$/],
+		[/^(-)\s*/, "minus", /^-$/],
+		[/^(\*)\s*/, "times", /^\*$/],
+		[/^(\/)\s*/, "div", /^\/$/],
+		[/^%\s*/, "mod", /^%$/]
+	];
+	this.datatypes = [
 		[/^(\d+)\s*/, "int", /^\d+$/],
 		[/^(".+?[^\\]")\s*/, "string", /^".+?[^\\]"$/],
 		[/^(true|false)\s*/, "bool", /^(true|false)$/],
 		[/^(\$[A-Za-z]+\s*=)\s*/, "variableSet", /^\$[A-Za-z]+\s*=$/],
-		[/^(\$[A-Za-z]+)\s*/, "variableGet", /^\$[A-Za-z]+$/],
-		
-		// Functions
+		[/^(\$[A-Za-z]+)\s*/, "variableGet", /^\$[A-Za-z]+$/]
+	];
+	this.functions = [
 		[/^([A-Za-z]+\(\))\s*/, "function", /^[A-Za-z]+\(\)$/]
 	];
+	
+	this.types = this.comments.concat(this.syntax)
+		.concat(this.operations)
+		.concat(this.datatypes)
+		.concat(this.functions);
 }
 
 module.exports = {

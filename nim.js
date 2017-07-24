@@ -113,7 +113,7 @@ function Server () {
 	
 	// Get responses for HTTP error codes
 	this.getErrorResponse = function (code) {
-		return code;
+		return code.toString();
 	};
 	
 	// Absolute directory

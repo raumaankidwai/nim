@@ -5,7 +5,7 @@ const server = new Nim.NimServer();
 
 server.init({
 	absolute: "/Users/raumaankidwai/nim/site/",
-	index: "/index.nim"
+	index: "index.nim"
 });
 
 http.createServer(server.process).listen(80);

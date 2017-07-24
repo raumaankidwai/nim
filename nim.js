@@ -34,7 +34,7 @@ function Server () {
 		} else if (/.nim$/.test(uri)) {
 			// TODO: better error throwing in Parser
 			try {
-				output = this.parser.process((fs.readFileSync(uri).toString())));
+				output = this.parser.process(fs.readFileSync(uri).toString());
 			} catch (e) {
 				code = 500;
 				

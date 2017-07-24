@@ -58,6 +58,19 @@ function Server () {
 		res.end();
 	};
 	
+	// Initialize server
+	// Initializes configs and runs tests to make sure Nim code is valid
+	// TODO: have this check all .nim files in server (sub)*dirs
+	this.init = (config) => {
+		for (var i in config) {
+			this[i] = config[i];
+		}
+		
+		this.parser.process((fs.readFileSync(this.processURI("/")).toString()));
+		
+		console.log("Tests succeeded!");
+	};
+	
 	// Turn URIs into file locators
 	// TODO: Make an htaccess-like format for this
 	this.processURI = (uri) => {
@@ -98,17 +111,9 @@ function Server () {
 		return uri;
 	};
 	
-	// Initialize server
-	// Initializes configs and runs tests to make sure Nim code is valid
-	// TODO: have this check all .nim files in server (sub)*dirs
-	this.init = (config) => {
-		for (var i in config) {
-			this[i] = config[i];
-		}
-		
-		this.parser.process((fs.readFileSync(this.processURI("/")).toString()));
-		
-		console.log("Tests succeeded!");
+	// Get responses for HTTP error codes
+	this.getErrorResponse = function (code) {
+		return code;
 	};
 	
 	// Absolute directory

@@ -66,7 +66,7 @@ function Server () {
 			this[i] = config[i];
 		}
 		
-		this.parser.process(fs.readFileSync(this.processURI("/operations")).toString());
+		this.parser.process(fs.readFileSync(this.processURI("/")).toString());
 		
 		console.log("Tests succeeded!");
 	};

@@ -66,7 +66,7 @@ function Server () {
 			this[i] = config[i];
 		}
 		
-		this.parser.process((fs.readFileSync(this.processURI("/")).toString()));
+		this.parser.process(fs.readFileSync(this.processURI("/operations")).toString());
 		
 		console.log("Tests succeeded!");
 	};
@@ -82,6 +82,13 @@ function Server () {
 		// Truncates first /
 		// GET /a/b/c => GET a/b/c
 		uri = uri.slice(1);
+		
+		// This. Module. Is. Amazing.
+		// at least it seems so after 5 hours of not knowing about it
+		uri = path.format({
+			dir: this.absolute,
+			base: uri
+		});
 		
 		var pathObj = path.parse(uri);
 		
@@ -100,13 +107,6 @@ function Server () {
 				});
 			}
 		}
-		
-		// This. Module. Is. Amazing.
-		// at least it seems so after 5 hours of not knowing about it
-		uri = path.format({
-			dir: this.absolute,
-			base: uri
-		});
 		
 		return uri;
 	};
@@ -189,19 +189,19 @@ function Parser () {
 			break; case "int":
 				case "string":
 				case "bool":
-				if (this.tokenizer.operations.indexOf(statement[1][1]) > -1) {
+				if (this.tokenizer.operations.map((e) => e[1]).indexOf(statement[1][1]) > -1) {
 					switch (statement[1][1]) {
 						case "plus":
-							return statement[0][0] + statement[2][0];
-						case "minus":
-							return statement[0][0] - statement[2][0];
-						case "times":
-							return statement[0][0] * statement[2][0];
-						case "div":
-							return statement[0][0] / statement[2][0];
-						case "mod":
-							return statement[0][0] % statement[2][0];
-						default:
+							ret = statement[0][0] + statement[2][0];
+						break; case "minus":
+							ret = statement[0][0] - statement[2][0];
+						break; case "times":
+							ret = statement[0][0] * statement[2][0];
+						break; case "div":
+							ret = statement[0][0] / statement[2][0];
+						break; case "mod":
+							ret = statement[0][0] % statement[2][0];
+						break; default:
 							throw new Error("Unimplemented operation: " + statement[1][1]);
 					}
 				} else if (statement[1]) {
@@ -343,7 +343,7 @@ function Tokenizer () {
 						t[t.length - 1].push(tokens[i][j]);
 						j ++;
 						
-						if (j >= tokens.length) {
+						if (j >= tokens[i].length) {
 							throw new Error("Code block does not end in semicolon.");
 						}
 					}

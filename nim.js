@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 
 // Functions
 // Each function object has an "args" array describing the number of arguments and a "run" function which returns an array [o, r] where `o` is the printed output and `r` is the return value.
@@ -23,15 +24,36 @@ const default_functions = {
 function Server () {
 	// Process requests, level 0
 	this.process = (req, res) => {
-		res.setHeader("Content-Type", "text/html");
+		var output = "";
+		var code = 200;
 		
 		var uri = this.processURI(req.url);
 		
-		if (/.nim$/.test(uri)) {
-			res.write(this.parser.process((fs.readFileSync(uri).toString())));
+		if (+uri) {
+			code = +uri;
+		} else if (/.nim$/.test(uri)) {
+			// TODO: better error throwing in Parser
+			try {
+				output = this.parser.process((fs.readFileSync(uri).toString())));
+			} catch (e) {
+				code = 500;
+				
+				console.log(e.message);
+			}
 		} else {
-			res.write(fs.readFileSync(this.processURI(req.url)));
+			output = fs.readFileSync(this.processURI(req.url));
 		}
+		
+		if (code > 399) {
+			output = this.getErrorResponse(code);
+		}
+		
+		res.writeHead(code, {
+			"Content-Length": output.length,
+			"Content-Type": "text/html"
+		});
+		
+		res.write(output);
 		
 		res.end();
 	};
@@ -39,19 +61,51 @@ function Server () {
 	// Turn URIs into file locators
 	// TODO: Make an htaccess-like format for this
 	this.processURI = (uri) => {
-		uri = uri.slice(1);
-		
-		if (!uri.length) {
-			uri = this.index;
+		// Index file
+		if (uri[uri.length - 1] == "/") {
+			uri += this.index;
 		}
 		
-		return "site/" + uri;
+		// Truncates first /
+		// GET /a/b/c => GET a/b/c
+		uri = uri.slice(1);
+		
+		var pathObj = path.parse(uri);
+		
+		// Check if no extension
+		if (!pathObj.ext) {
+			var files = fs.readdirSync(pathObj.dir).filter((e) => !e.indexOf(pathObj.name));
+			
+			if (files.length > 1) {
+				return 416; // 416 Range Not Satisfiable, bends the definition a little bit to use "range" as "range of files" and not "range of bytes of file"
+			} else if (files.length < 1) {
+				return 404; // Obv
+			} else {
+				uri = path.format({
+					dir: pathObj.dir,
+					base: files[0]
+				});
+			}
+		}
+		
+		// This. Module. Is. Amazing.
+		// at least it seems so after 5 hours of not knowing about it
+		uri = path.format({
+			dir: this.absolute,
+			base: uri
+		});
+		
+		return uri;
 	};
 	
 	// Initialize server
-	// Just runs tests to make sure Nim code is valid
+	// Initializes configs and runs tests to make sure Nim code is valid
 	// TODO: have this check all .nim files in server (sub)*dirs
-	this.init = () => {
+	this.init = (config) => {
+		for (var i in config) {
+			this[i] = config[i];
+		}
+		
 		this.parser.process((fs.readFileSync(this.processURI("/")).toString()));
 		
 		console.log("Tests succeeded!");

@@ -8,4 +8,4 @@ server.init({
 	index: "index.nim"
 });
 
-http.createServer(server.process).listen(80);
+http.createServer(server.process).listen(8080);

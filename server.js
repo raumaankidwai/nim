@@ -4,7 +4,7 @@ const Nim = require("./nim.js");
 const server = new Nim.NimServer();
 
 server.init({
-	absolute: "/home/pi/nim/site/",
+	absolute: "/Users/raumaankidwai/nim/site/",
 	index: "/index.nim"
 });
 

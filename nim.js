@@ -70,35 +70,6 @@ function Server () {
 		for (var i in config) {
 			this[i] = config[i];
 		}
-		
-		// Tired of adding `u`tility functions to the parent class
-		// TODO: move most of them into the module's global scope
-		var p = (function u (dir) {
-			var dir = fs.readdir(dir);
-			
-			for (var i = 0; i < dir.length; i ++) {
-				var el = dir[i];
-				var path = path.format({ dir: dir, base: el });
-				
-				if (fs.statSync(path).isDirectory()) {
-					u(path);
-				} else if (/\.nim$/.test(el)) {
-					try {
-						this.processFile(path);
-					} catch (e) {
-						return [path, e];
-					}
-				}
-			}
-		})(this.absolute);
-		
-		if (p) {
-			console.log("Error found on file '" + p[0] + "': " + p[1].message);
-			return false;
-		}
-		
-		console.log("No errors found!");
-		return true;
 	};
 	
 	// Turn URIs into file locators

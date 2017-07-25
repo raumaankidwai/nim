@@ -3,9 +3,9 @@ const Nim = require("./nim.js");
 
 const server = new Nim.Server();
 
-if (server.init({
+server.init({
 	absolute: "/Users/raumaankidwai/nim/site/",
 	index: "index.nim"
-})) {
-	http.createServer(server.process).listen(8080);
-}
+});
+
+http.createServer(server.process).listen(8080);

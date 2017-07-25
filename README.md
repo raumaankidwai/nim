@@ -59,7 +59,7 @@ $b = 1
 
 # Loop infinitely
 # 1 can't be used here, so we have `true` and `false`
-while {true} {
+while true {
 	# Print
 	print() $a;
 

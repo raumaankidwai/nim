@@ -1,11 +1,11 @@
 const http = require("http");
 const Nim = require("./nim.js");
 
-const server = new Nim.NimServer();
+const server = new Nim.Server();
 
-server.init({
+if (server.init({
 	absolute: "/Users/raumaankidwai/nim/site/",
 	index: "index.nim"
-});
-
-http.createServer(server.process).listen(8080);
+})) {
+	http.createServer(server.process).listen(8080);
+}

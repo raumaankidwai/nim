@@ -459,7 +459,7 @@ function Tokenizer () {
 }
 
 module.exports = {
-	NimServer: Server,
-	NimParser: Parser,
-	NimTokenizer: Tokenizer
+	Server: Server,
+	Parser: Parser,
+	Tokenizer: Tokenizer
 };

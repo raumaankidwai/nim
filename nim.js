@@ -16,7 +16,7 @@ const default_functions = {
 
 // Utility functions for Server/Parser/Tokenizer that shouldn't be in prototypes
 const utils = {
-	getErrorResponse : function (code) {
+	getErrorResponse: function (code) {
 		return code.toString();
 	},
 };

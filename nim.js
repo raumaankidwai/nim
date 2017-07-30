@@ -218,7 +218,9 @@ function Parser () {
 	// Parse individual statements
 	// VALID STATEMENTS:
 	// <function> [arg1] [arg2] [...]
-	// <variable> <equals> <int|string|bool>
+	// <variable> <equals> <data>
+	// <data> <operation> <data>
+	// <data>
 	this.parseStatement = (statement) => {
 		var output = "", ret, k;
 		

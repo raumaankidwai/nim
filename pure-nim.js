@@ -1,8 +1,5 @@
 const Nim = require("./nim.js");
 
-const tokenizer = new Nim.Tokenizer();
-const parser = new Nim.Parser();
-
 if (process.argv[2]) {
 	const fs = require("fs");
 	
@@ -11,7 +8,8 @@ if (process.argv[2]) {
 			throw e;
 		}
 		
-		console.log(parser.process(d.toString()));
+		// Super hacky, bad, all-around horrible
+		console.log(new Nim.Parser().process("<!--{" + d.toString() + "}-->"));
 	});
 } else {
 	throw new Error("CLI not supported yet.");

@@ -9,3 +9,5 @@ server.init({
 });
 
 http.createServer(server.process).listen(8080);
+
+console.log("Ready!");

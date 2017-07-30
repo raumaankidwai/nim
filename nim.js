@@ -1,24 +1,77 @@
 const fs = require("fs");
 const path = require("path");
 
-// Functions
-// Each function object has an "args" array describing the number of arguments and a "run" function which returns an array [o, r] where `o` is the printed output and `r` is the return value.
 const default_functions = {
 	"print": {
 		args: 1,
+		type: "string",
 		run: (a, o) => [a[0], a[0]]
 	},
 	"epoch": {
 		args: 0,
+		type: "number",
 		run: (a, o) => ["", new Date().getTime()]
 	}
 };
 
-// Utility functions for Server/Parser/Tokenizer that shouldn't be in prototypes
+// Utility functions that need to be taken outside of constructors, maybe recursive stuff
 const utils = {
-	getErrorResponse: function (code) {
+	// Get responses for HTTP error codes
+	getErrorResponse: (code) => {
 		return code.toString();
 	},
+	
+	// Split partially tokenized block into more blocks on subs/sube
+	splitIntoBlocks: (tokens) => {
+		var s = 0;
+		var t = [];
+		var k = false;
+		
+		for (var i = 0; i < tokens.length; i ++) {
+			if (tokens[i][1] == "subs") {
+				s ++;
+				
+				k = true;
+			} else if (tokens[i][1] == "sube" && !--s) {
+				tokens = tokens.slice(0, i - t.length).concat([[utils.splitIntoBlocks(t.slice(1)), "block"]]).concat(tokens.slice(i + 1));
+				
+				i -= t.length;
+				
+				t = [];
+				k = false;
+			}
+			
+			if (k) {
+				t.push(tokens[i]);
+			}
+		}
+		
+		return tokens;
+	},
+	
+	// Split partially tokenized block into statements on EOL (;)
+	splitIntoStatements: (tokens) => {
+		var t = [];
+		
+		for (var i = 0; i < tokens.length; i ++) {
+			t.push([]);
+			
+			while (tokens[i][1] != "eol") {
+				if (tokens[i][1] == "block") {
+					tokens[i][0] = utils.splitIntoStatements(tokens[i][0]);
+				}
+				
+				t[t.length - 1].push(tokens[i]);
+				i ++;
+				
+				if (i >= tokens.length) {
+					throw new Error("Code block does not end in semicolon.");
+				}
+			}
+		}
+		
+		return t;
+	}
 };
 
 // Level -1       Level 0                         Level 1        Level 2           Level 3
@@ -29,180 +82,179 @@ const utils = {
 
 // Server constructor
 function Server () {
+	// Process requests, level 0
+	this.process = (req, res) => {
+		var code = 200;
+		
+		var uri = this.processURI(req.url), file;
+		
+		if (+uri) {
+			code = +uri;
+		} else {
+			try {
+				file = fs.readFileSync(uri).toString();
+			} catch (e) {
+				code = 404;
+			}
+		}
+		
+		if (code < 400 && /.nim$/.test(uri)) {
+			// TODO: better error throwing in Parser
+			try {
+				output = this.parser.process(file);
+			} catch (e) {
+				code = 500;
+				
+				console.log(e.message);
+			}
+		}
+		
+		if (code >= 400) {
+			output = utils.getErrorResponse(code);
+		}
+		
+		res.writeHead(code, {
+			"Content-Length": output.length,
+			"Content-Type": "text/html"
+		});
+		
+		res.write(output);
+		
+		res.end();
+	};
+	
+	// Initialize server
+	// Initializes configs and runs tests to make sure Nim code is valid
+	// TODO: have this check all .nim files in server (sub)*dirs
+	this.init = (config) => {
+		for (var i in config) {
+			this[i] = config[i];
+		}
+	};
+	
+	// Turn URIs into file locators
+	// TODO: Make an htaccess-like format for this
+	this.processURI = (uri) => {
+		// Index file
+		if (uri[uri.length - 1] == "/") {
+			uri += this.index;
+		}
+		
+		// Truncates first /
+		// GET /a/b/c => GET a/b/c
+		uri = uri.slice(1);
+		
+		// This. Module. Is. Amazing.
+		// at least it seems so after 5 hours of not knowing about it
+		uri = path.format({
+			dir: this.absolute,
+			base: uri
+		});
+		
+		var pathObj = path.parse(uri);
+		
+		// Check if no extension
+		if (!pathObj.ext) {
+			var files = fs.readdirSync(pathObj.dir).filter((e) => !e.indexOf(pathObj.name));
+			
+			if (files.length > 1) {
+				return 416; // 416 Range Not Satisfiable, bends the definition a little bit to use "range" as "range of files" and not "range of bytes of file"
+			} else if (files.length < 1) {
+				return 404; // Obv
+			} else {
+				uri = path.format({
+					dir: pathObj.dir,
+					base: files[0]
+				});
+			}
+		}
+		
+		return uri;
+	};
+	
 	// Absolute directory
 	this.absolute = "/";
 	
 	// Index file
 	this.index = "index.nim";
 	
-	// Level 1
+	// Moving on to level 1...
 	this.parser = new Parser();
 }
 
-// Process requests, level 0
-Server.prototype.process = (req, res) => {
-	var output = "";
-	var code = 200;
-	
-	var uri = this.processURI(req.url);
-	
-	if (+uri) {
-		code = +uri;
-	} else if (/.nim$/.test(uri)) {
-		// TODO: better error throwing in Parser
-		try {
-			output = this.processFile(uri);
-		} catch (e) {
-			code = 500;
-			
-			console.log(e.message);
-		}
-	} else {
-		output = fs.readFileSync(this.processURI(req.url));
-	}
-	
-	if (code > 399) {
-		output = this.getErrorResponse(code);
-	}
-	
-	res.writeHead(code, {
-		"Content-Length": output.length,
-		"Content-Type": "text/html"
-	});
-	
-	res.write(output);
-	
-	res.end();
-};
-
-// Process individual files
-Server.prototype.processFile = (file) => {
-	return this.parser.process(fs.readFileSync(uri).toString());
-};
-
-// Initialize server
-// Initializes configs and nothing else
-Server.prototype.init = (config) => {
-	for (var i in config) {
-		this[i] = config[i];
-	}
-};
-
-// Turn URIs into file locators
-// TODO: Make an htaccess-like format for this
-Server.prototype.processURI = (uri) => {
-	// Index file
-	if (uri[uri.length - 1] == "/") {
-		uri += this.index;
-	}
-	
-	// Truncates first /
-	// GET /a/b/c => GET a/b/c
-	uri = uri.slice(1);
-	
-	// This. Module. Is. Amazing.
-	// at least it seems so after 5 hours of not knowing about it
-	uri = path.format({
-		dir: this.absolute,
-		base: uri
-	});
-	
-	var pathObj = path.parse(uri);
-	
-	// Check if no extension
-	if (!pathObj.ext) {
-		var files = fs.readdirSync(pathObj.dir).filter((e) => !e.indexOf(pathObj.name));
-		
-		if (files.length > 1) {
-			return 416; // 416 Range Not Satisfiable, bends the definition a little bit to use "range" as "range of files" and not "range of bytes of file"
-		} else if (files.length < 1) {
-			return 404; // Obv
-		} else {
-			uri = path.format({
-				dir: pathObj.dir,
-				base: files[0]
-			});
-		}
-	}
-	
-	return uri;
-};
-
 // Parser constructor
 function Parser () {
-	// Functions
-	this.functions = default_functions;
-	
-	// Variables
-	this.variables = {};
-	
-	// Level 2
-	this.tokenizer = new Tokenizer();
-}
-
-// Interprets Nim-coded HTML, level 1
-Parser.prototype.process = (text) => this.parse(this.tokenizer.tokenize(text))[0];
-
-// Parses tokenized Nim, level 3
-Parser.prototype.parse = (tokenizer) => {
-	var tokens = tokenizer.tokens;
-	var plain = tokenizer.plain;
-	
-	// output[0] is text printed to page
-	// output[1] is returned value
-	var output = [plain[0], ];
-	
-	for (var i = 0; i < tokens.length; i ++) {
-		for (var j = 0; j < tokens[i].length; j ++) {
-			var statement = this.parseStatement(tokens[i][j]);
-			
-			output[0] += statement[0];
-			output[1] = statement[1];
-		}
+	// Interprets Nim-coded HTML, level 1
+	this.process = (text) => {
+		this.functions = default_functions;
+		this.variables = {};
 		
-		output[0] += plain[i + 1];
+		return this.parse(this.tokenizer.tokenize(text))[0];
 	}
 	
-	return output;
-};
-
-// Parse individual statements
-// VALID STATEMENTS:
-// <function> [arg1] [arg2] [...]
-// <variable> <equals> <int|string|bool>
-// <value> <operation> <value>
-Parser.prototype.parseStatement = (statement) => {
-	var output = "", ret, k;
-	
-	statement = statement.map((e) => Array.isArray(e[0]) ? (k = e.map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1]]), output += k[0], this.eval(k[1])) : this.eval(e[0]));
-	
-	switch (statement[0][1]) {
-		case "function":
-			var name = statement[0][0];
-			var func = this.functions[name];
-			
-			if (func) {
-				statement = statement.slice(1);
+	// Parses tokenized Nim, level 3
+	this.parse = (tokenizer) => {
+		var tokens = tokenizer.tokens;
+		var plain = tokenizer.plain;
+		
+		// output[0] is text printed to page
+		// output[1] is returned value
+		var output = [plain[0], ];
+		
+		for (var i = 0; i < tokens.length; i ++) {
+			for (var j = 0; j < tokens[i].length; j ++) {
+				var statement = this.parseStatement(tokens[i][j]);
 				
-				if (statement.length != func.args) {
-					throw new Error("Incorrect number of arguments: Expected " + func.args.length + " arguments for function `" + name + "` but got " + statement.length);
-				}
-				
-				var res = func.run(statement.map((e) => e[0]));
-				
-				output += res[0];
-				ret = res[1];
-			} else {
-				throw new Error("Undefined function: " + name);
+				output[0] += statement[0];
+				output[1] = statement[1];
 			}
-		break; case "variableSet":
-			this.variables[statement[0][0]] = statement[1][0];
 			
-			res = statement[1][0];
-		break; case "int":
+			output[0] += plain[i + 1];
+		}
+		
+		return output;
+	};
+	
+	// Parse individual statements
+	// VALID STATEMENTS:
+	// <function> [arg1] [arg2] [...]
+	// <variable> <equals> <int|string|bool>
+	this.parseStatement = (statement) => {
+		var output = "", ret, k;
+		
+		var f = (e) => e[1] == "variableGet" ? [this.variables[e[0]], "variableGet"] : e[1] == "block" ? [e[0].map(f), e[1]] : e;
+		
+		statement = statement.map((e) => e[1] == "block" ? (k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]), output += k[0], [k[1], k[2]]) : e).map(f);
+		
+		switch (statement[0][1]) {
+			case "function":
+				var name = statement[0][0];
+				var func = this.functions[name];
+				
+				if (func) {
+					statement = statement.slice(1);
+					
+					if (statement.length != func.args) {
+						throw new Error("Incorrect number of arguments: Expected " + func.args.length + " arguments for function `" + name + "` but got " + statement.length);
+					}
+					
+					var res = func.run(statement.map((e) => e[0]));
+					
+					output += res[0];
+					ret = res[1];
+					rettype = func.type;
+				} else {
+					throw new Error("Undefined function: " + name);
+				}
+			break; case "variableSet":
+				this.variables[statement[0][0]] = statement[1][0];
+				
+				ret = statement[1][0];
+				rettype = statement[1][1];
+			break; case "number":
 			case "string":
 			case "bool":
-			if (this.tokenizer.operations.map((e) => e[1]).indexOf(statement[1][1]) > -1) {
+			case "variableGet":
 				switch (statement[1][1]) {
 					case "plus":
 						ret = statement[0][0] + statement[2][0];
@@ -214,233 +266,256 @@ Parser.prototype.parseStatement = (statement) => {
 						ret = statement[0][0] / statement[2][0];
 					break; case "mod":
 						ret = statement[0][0] % statement[2][0];
+					break; case "intdiv":
+						ret = Math.floor(statement[0][0] / statement[2][0]);
+					break; case undefined:
+						ret = statement[0];
 					break; default:
-						throw new Error("Unimplemented operation: " + statement[1][1]);
+						throw new Error("Expected operation on " + statement[0][1]);
 				}
-			} else if (statement[1]) {
-				throw new Error("Expected operation on " + statement[0][1]);
-			} else {
-				res = statement[0];
-			}
-		break; default:
-			throw new Error("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")");
-	}
-	
-	return [output, ret];
-};
-
-// Evaluate a value, i.e. turn from string into whatever type it has to be (guesses the type)
-Parser.prototype.eval = function (val) {
-	var types = this.tokenizer.types, type;
-	
-	for (var i = 0; i < types.length; i ++) {
-		if (types[i][2] && types[i][2].test(val)) {
-			type = types[i][1];
-			break;
+				
+				rettype = "" + ret === ret ? "string" : ret == true || ret == false ? "bool" : "number";
+			break; default:
+				throw new Error("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")");
 		}
-	}
+		
+		return [output, ret, rettype];
+	};
 	
-	switch (type) {
-		case "string":
-			val = val.substring(1, val.length - 1);
-		break; case "int":
-			val = +val;
-		break; case "bool":
-			val = val == "true";
-		break; case "variableSet":
-			val = val.replace(/\s*=\s*/, "").slice(1);
-		break; case "variableGet":
-			val = this.variables[val.slice(1)];
-		break; case "function":
-			val = val.substring(0, val.length - 2);
-		default: break;
-	}
+	// Functions
+	this.functions = default_functions;
 	
-	return [val, type];
-};
+	
+	// Variables
+	this.variables = {};
+	
+	// Moving on to level 2...
+	this.tokenizer = new Tokenizer();
+}
 
 // Tokenizer constructor
 function Tokenizer () {
-	// Tokens array, Array of arrays of arrays of (tuples or arrays of tuples)
-	// Each tuple is a token, each array of tuples at this level is a code block {...}
+	// Tokenizes (lexes, lexemizes, lexically analyzes, whatever) Nim-coded HTML, level 2
+	this.tokenize = (text) => {
+		this.reset();
+		
+		this.raw = text;
+		
+		// Array of blocks of pure Nim code
+		var blocks = text.match(/<!--{\s*([\W\w]+?)\s*}-->/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
+		
+		// Plain HTML surrounding Nim blocks, to be interleaved with Nim output
+		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
+		
+		for (var i = 0; i < blocks.length; i ++) {
+			this.tokens.push(this.tokenizeBlock(blocks[i]));
+		}
+		
+		return this;
+	};
+	
+	this.tokenizeBlock = (block) => {
+		var tokens = [];
+		
+		for (var i = 0; i < block.length;) {
+			var value = block[i];
+			var type;
+			
+			// Hello, future me.
+			// If you're reading this, this tokenizer has broken and you probably still remember writing this comment.
+			// Don't try to understand the increments. Please.
+			// They work. Maybe.
+			
+			// Sincerely, past you.
+			
+			// https://xkcd.com/1421/
+			
+			if (value == "#") {
+				type = "comment";
+				
+				// While no newline, keep adding to the comment
+				while (!/[\r\n]/.test(block[i])) {
+					value += block[i ++];
+				}
+			} else if (value == "{") {
+				type = "subs";
+			} else if (value == "}") {
+				type = "sube";
+			} else if (value == ";") {
+				type = "eol";
+			} else if (value == "=") {
+				type = "equals";
+			} else if (value == "+") {
+				type = "plus";
+			} else if (value == "-") {
+				type = "minus";
+			} else if (value == "*") {
+				type = "times";
+			} else if (value == "/") {
+				type = "div";
+			} else if (value == "%") {
+				// %/ is intdiv, % is mod, distinguish
+				if (block[i + 1] == "/") {
+					type = "intdiv";
+					i ++;
+				} else {
+					type = "mod";
+				}
+			} else if (value == "$") {
+				// If there is no alphanumeric character in front of the $, error
+				if (!/[A-Za-z0-9]/.test(block[++i])) {
+					throw new Error("Expected variable identifier");
+				}
+				
+				// Keep adding to the identifier until identifier runs out
+				while (/[A-Za-z0-9]/.test(block[i])) {
+					value += block[i ++];
+				}
+				
+				while (/\s/.test(block[i])) {
+					i ++;
+				}
+				
+				if (block[i] == "=") {
+					type = "variableSet";
+				} else {
+					type = "variableGet";
+					i --;
+				}
+				
+				value = value.slice(1);
+			} else if (/\d/.test(value)) {
+				type = "number";
+				
+				var radix = 10;
+				
+				if (!+value) {
+					// Value is 0, check if weird radix (011 octal, 0x11 hex, 0b11 binary)
+					if (/\d/.test(block[++i])) {
+						// Octal
+						radix = 8;
+					} else if (block[i] == "x") {
+						radix = 16;
+					} else if (block[i] == "b") {
+						radix = 2;
+					}
+					
+					value = "";
+				}
+				
+				while (/[\d\.]/.test(block[i + 1])) {
+					value += block[++i];
+				}
+				
+				value = parseFloat(value, radix);
+			} else if (value == "\"" || value == "'") {
+				type = "string";
+				
+				var delim = value, bs = false; // Backslashes indicate BS string endings
+				
+				while (block[++i] != delim || bs) {
+					if (!block[i]) {
+						throw new Error("String without ending");
+					}
+					
+					value += block[i];
+					
+					bs = false;
+					
+					if (block[i] == "\\") {
+						bs = true;
+					}
+				}
+				
+				value = value.slice(1);
+			} else if (/[A-Za-z0-9]/.test(value)) {
+				// Identifier time! (ouch)
+				while (/[A-Za-z0-9]/.test(block[i + 1])) {
+					value += block[++i];
+				}
+				
+				if (value == "true" || value == "false") {
+					type = "bool";
+					value = Boolean(value);
+				} else if ((block[i + 1] + block[i + 2]) == "()") {
+					i += 2;
+					type = "function";
+				}
+			} else {
+				throw new Error("Invalid character: " + value);
+			}
+			
+			tokens.push([value, type]);
+			
+			while (/\s/.test(block[++i]));
+		}
+		
+		tokens = utils.splitIntoStatements(utils.splitIntoBlocks(tokens));
+		
+		return tokens;
+	};
+	
+	// Reset tokenizer, we don't want to create new objects every request
+	this.reset = () => {
+		this.tokens = [];
+		
+		this.raw = "";
+		this.plain = "";
+		
+		return this;
+	};
+	
+	// Tokens array, Array of arrays of arrays of tuples
+	// Each tuple is a token
 	// Each array of tuples is a statement ...;
 	// Each array of statements is a Nim block <!--{...}-->
 	// The array of Nim blocks is this.tokens
 	this.tokens = [];
 	
 	this.raw = "";
-	this.plain = [];
+	this.plain = "";
 	
 	// Token type arrays
-	var comments = [
-		[/^#(.*)[\r\n]+[\s]*/, "comment"]
+	this.comments = [
+		[/^#(.*)([\r\n]|$)+[\s]*/, "comment"]
 	];
-	
-	var syntax = [
+	this.syntax = [
 		[/^({)\s*/, "subs"],
 		[/^(})\s*/, "sube"],
 		[/^(;)\s*/, "eol"],
 		[/^(=)\s*/, "equals", /^=$/]
 	];
-	
-	var operations = [
+	this.operations = [
 		[/^(\+)\s*/, "plus", /^\+$/],
 		[/^(-)\s*/, "minus", /^-$/],
 		[/^(\*)\s*/, "times", /^\*$/],
+		[/^(%\/)\s*/, "intdiv", /^%\/$/],
 		[/^(\/)\s*/, "div", /^\/$/],
-		[/^%\s*/, "mod", /^%$/]
+		[/^(%)\s*/, "mod", /^%$/]
 	];
-	
-	var datatypes = [
+	this.variables = [
+		[/^(\$[A-Za-z]+\s*=)\s*/, "variableSet", /^\$[A-Za-z]+\s*=$/]
+	];
+	this.datatypes = [
 		[/^(\d+)\s*/, "int", /^\d+$/],
-		[/^(".+?[^\\]")\s*/, "string", /^".+?[^\\]"$/],
+		[/^((['"]).+?[^\\]\2)\s*/, "string", /^".+?[^\\]"$/],
 		[/^(true|false)\s*/, "bool", /^(true|false)$/],
 		[/^(\$[A-Za-z]+)\s*/, "variableGet", /^\$[A-Za-z]+$/]
 	];
-	
-	var variables = [
-		[/^(\$[A-Za-z]+\s*=)\s*/, "variableSet", /^\$[A-Za-z]+\s*=$/]
-	];
-	
-	var functions = [
+	this.functions = [
 		[/^([A-Za-z]+\(\))\s*/, "function", /^[A-Za-z]+\(\)$/]
 	];
 	
-	this.types = comments.concat(syntax)
-		.concat(operations)
-		.concat(datatypes)
-		.concat(variables)
-		.concat(functions);
+	this.types = this.comments.concat(this.syntax)
+		.concat(this.operations)
+		.concat(this.variables)
+		.concat(this.datatypes)
+		.concat(this.functions);
 }
-
-// Tokenizes (lexes, lexemizes, lexically analyzes, whatever) Nim-coded HTML, level 2
-Tokenizer.prototype.tokenize = (text) => {
-	this.reset();
-	
-	this.raw = text;
-	
-	// Array of blocks of pure Nim code
-	var blocks = text.match(/<!--{\s+([\W\w]+?)\s+}-->/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
-	
-	// Plain HTML surrounding Nim blocks, to be interleaved with Nim output
-	this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
-	
-	for (var i = 0; i < blocks.length; i ++) {
-		this.tokens.push(this.tokenizeBlock(blocks[i]));
-	}
-	
-	return this;
-};
-
-Tokenizer.prototype.tokenizeBlock = (block) => {
-	var l, tokens = [];
-	
-	// Find the first token in the block, remove it, repeat
-	// Notice all the token type regexes start with ^
-	// This is to preserve order and prevent inefficient char-by-char scanning
-	while (l = block.length) {
-		for (var j = 0; j < this.types.length; j ++) {
-			block = block.replace(this.types[j][0], (a, token) => {
-				if (this.types[j][1] != "comment") {
-					tokens.push([token, this.types[j][1]]);
-				}
-				
-				return "";
-			});
-		}
-		
-		if (block.length == l) {
-			throw new Error("Unidentifiable token @ `" + block.slice(0, 20) + "`...");
-		}
-	}
-	
-	// TODO: Optimize (so bad)
-	// Turns [..., [*, "subs"], ..., [*, "sube"], ...] into [..., [...], ...]
-	var s = 0;
-	
-	while (tokens.map((e) => e[1]).indexOf("subs") > -1) {
-		for (var j = 0; j < tokens.length; j ++) {
-			if (tokens[j][1] == "subs") {
-				s ++;
-				
-				var t = [];
-				
-				while (s > 0) {
-					tokens.splice(j, 1);
-					
-					if (tokens[j][1] == "subs") {
-						s ++;
-					} else if (tokens[j][1] == "sube") {
-						s --;
-						
-						if (s < 1) {
-							tokens.splice(j, 1);
-						}
-					} else {
-						t.push(tokens[j]);
-					}
-				}
-				
-				tokens = tokens.slice(0, j).concat([t]).concat(tokens.slice(j, tokens.length));
-			}
-		}
-	}
-	
-	// Split code blocks on EOL
-	for (var i = 0; i < tokens.length; i ++) {
-		if (Array.isArray(tokens[i][0])) {
-			var t = [];
-			
-			for (var j = 0; j < tokens[i].length; j ++) {
-				t.push([]);
-				
-				while (tokens[i][j][1] != "eol") {
-					t[t.length - 1].push(tokens[i][j]);
-					j ++;
-					
-					if (j >= tokens[i].length) {
-						throw new Error("Code block does not end in semicolon.");
-					}
-				}
-			}
-			
-			tokens[i] = t;
-		}
-	}
-	
-	// Split tokens on EOL
-	var t = [];
-	
-	for (var i = 0; i < tokens.length; i ++) {
-		t.push([]);
-		
-		while (tokens[i][1] != "eol") {
-			t[t.length - 1].push(tokens[i]);
-			i ++;
-			
-			if (i >= tokens.length) {
-				throw new Error("Code block does not end in semicolon.");
-			}
-		}
-	}
-	
-	tokens = t;
-	
-	return tokens;
-};
-
-// Reset tokenizer, we don't want to create new objects every request
-Tokenizer.prototype.reset = () => {
-	this.tokens = [];
-	
-	this.raw = "";
-	this.plain = [];
-	
-	return this;
-};
 
 module.exports = {
 	Server: Server,
 	Parser: Parser,
-	Tokenizer: Tokenizer
+	Tokenizer: Tokenizer,
+	utils: utils
 };

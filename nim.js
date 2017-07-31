@@ -389,27 +389,25 @@ function Tokenizer () {
 			} else if (/\d/.test(value)) {
 				type = "number";
 				
-				var radix = 10;
+				var hex = false;
 				
 				if (!+value) {
-					// Value is 0, check if weird radix (011 octal, 0x11 hex, 0b11 binary)
-					if (/\d/.test(block[++i])) {
-						// Octal
-						radix = 8;
-					} else if (block[i] == "x") {
-						radix = 16;
-					} else if (block[i] == "b") {
-						radix = 2;
+					if (block[++i] != "." && block[i] != "b" && block[i] != "o" && block[i] != "x" && /\D/.test(block[i])) {
+						throw new Error("Expected numerical radix, got " + value + block[i]);
+					} else {
+						if (block[i] == "x") {
+							hex = true;
+						}
+						
+						value += block[i];
 					}
-					
-					value = "";
 				}
 				
-				while (/[\d\.]/.test(block[i + 1])) {
+				while ((hex ? /[\dA-Fa-f]/ : /[\d\.]/).test(block[i + 1])) {
 					value += block[++i];
 				}
 				
-				value = parseFloat(value, radix);
+				value = Number(value);
 			} else if (value == "\"" || value == "'") {
 				type = "string";
 				

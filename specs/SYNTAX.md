@@ -4,3 +4,5 @@ Nim syntax is unique, yet simple. Nim follows a standard of being easy to parse 
 * [Nim in HTML](NIM-IN-HTML.md)
 * [Statements](STATEMENTS.md)
 * [Code blocks](CODE-BLOCKS.md)
+
+### Next: [Data types](DATA.md)

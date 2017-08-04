@@ -105,7 +105,7 @@ function Server () {
 			} catch (e) {
 				code = 500;
 				
-				console.log(e.message);
+				throw e;
 			}
 		}
 		
@@ -217,19 +217,27 @@ function Parser () {
 	
 	// Parse individual statements
 	// VALID STATEMENTS:
+	// <comment>
 	// <function> [arg1] [arg2] [...]
 	// <variable> <equals> <data>
 	// <data> <operation> <data>
 	// <data>
+	// <if> <boolean> <block>
+	// <elseif> <boolean> <block>
+	// <else> <block>
 	this.parseStatement = (statement) => {
-		var output = "", ret, k;
+		var output = "", ret, rettype, k;
 		
 		var f = (e) => e[1] == "variableGet" ? [this.variables[e[0]], "variableGet"] : e[1] == "block" ? [e[0].map(f), e[1]] : e;
 		
-		statement = statement.map((e) => e[1] == "block" ? (k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]), output += k[0], [k[1], k[2]]) : e).map(f);
+		statement = statement.map((e, i) => e[1] == "block" ? (statement[0][1] == "if" && i == 2) || (statement[0][1] == "elseif" && i == 2) || statement[0][1] == "else" ? e : (k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]), output += k[0], [k[1], k[2]]) : e).map(f);
+		
+		var lastLooked = 0;
 		
 		switch (statement[0][1]) {
-			case "function":
+			case "comment":
+				
+			break; case "function":
 				var name = statement[0][0];
 				var func = this.functions[name];
 				
@@ -245,6 +253,8 @@ function Parser () {
 					output += res[0];
 					ret = res[1];
 					rettype = func.type;
+					
+					lastLooked = statement.length - 1;
 				} else {
 					throw new Error("Undefined function: " + name);
 				}
@@ -253,6 +263,8 @@ function Parser () {
 				
 				ret = statement[1][0];
 				rettype = statement[1][1];
+				
+				lastLooked = 1;
 			break; case "number":
 			case "string":
 			case "bool":
@@ -277,8 +289,60 @@ function Parser () {
 				}
 				
 				rettype = "" + ret === ret ? "string" : ret == true || ret == false ? "bool" : "number";
+				
+				lastLooked = 2;
+			break; case "if":
+				this.conditions = [statement[1][0]];
+				
+				if (statement[1][0]) {
+					var r = statement[2][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
+					
+					output = r[0];
+					ret = r[1];
+					rettype = r[2];
+				}
+				
+				lastLooked = 2;
+			break; case "elseif":
+				if (!this.conditions.length) {
+					throw new Error("elseif after no if or elseif");
+				}
+				
+				if (!this.conditions.reduce((a, b) => a || b) && statement[1][0]) {
+					var r = statement[2][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
+					
+					output = r[0];
+					ret = r[1];
+					rettype = r[2];
+				}
+				
+				this.conditions.push(statement[1][0]);
+				
+				lastLooked = 2;
+			break; case "else":
+				if (!this.conditions.length) {
+					throw new Error("else after no if or elseif");
+				}
+				
+				if (!this.conditions.reduce((a, b) => a || b)) {
+					var r = statement[1][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
+					
+					output = r[0];
+					ret = r[1];
+					rettype = r[2];
+				}
+				
+				lastLooked = 1;
 			break; default:
 				throw new Error("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")");
+		}
+		
+		if (statement[0] && statement[0][1] != "if" && statement[0][1] != "elseif") {
+			this.conditions = [];
+		}
+		
+		if ((statement.length - 1) > lastLooked) {
+			throw new Error("Unexpected token: `" + statement[lastLooked + 1] + "`");
 		}
 		
 		return [output, ret, rettype];
@@ -290,6 +354,9 @@ function Parser () {
 	
 	// Variables
 	this.variables = {};
+	
+	// Condition of previous if/elseif/else, if needed
+	this.conditions = [];
 	
 	// Moving on to level 2...
 	this.tokenizer = new Tokenizer();
@@ -436,10 +503,12 @@ function Tokenizer () {
 				
 				if (value == "true" || value == "false") {
 					type = "bool";
-					value = Boolean(value);
+					value = value == "true";
 				} else if ((block[i + 1] + block[i + 2]) == "()") {
 					i += 2;
 					type = "function";
+				} else if (value == "if" || value == "elseif" || value == "else") {
+					type = value;
 				}
 			} else {
 				throw new Error("Invalid character: " + value);
@@ -473,44 +542,7 @@ function Tokenizer () {
 	this.tokens = [];
 	
 	this.raw = "";
-	this.plain = "";
-	
-	// Token type arrays
-	this.comments = [
-		[/^#(.*)([\r\n]|$)+[\s]*/, "comment"]
-	];
-	this.syntax = [
-		[/^({)\s*/, "subs"],
-		[/^(})\s*/, "sube"],
-		[/^(;)\s*/, "eol"],
-		[/^(=)\s*/, "equals", /^=$/]
-	];
-	this.operations = [
-		[/^(\+)\s*/, "plus", /^\+$/],
-		[/^(-)\s*/, "minus", /^-$/],
-		[/^(\*)\s*/, "times", /^\*$/],
-		[/^(%\/)\s*/, "intdiv", /^%\/$/],
-		[/^(\/)\s*/, "div", /^\/$/],
-		[/^(%)\s*/, "mod", /^%$/]
-	];
-	this.variables = [
-		[/^(\$[A-Za-z]+\s*=)\s*/, "variableSet", /^\$[A-Za-z]+\s*=$/]
-	];
-	this.datatypes = [
-		[/^(\d+)\s*/, "int", /^\d+$/],
-		[/^((['"]).+?[^\\]\2)\s*/, "string", /^".+?[^\\]"$/],
-		[/^(true|false)\s*/, "bool", /^(true|false)$/],
-		[/^(\$[A-Za-z]+)\s*/, "variableGet", /^\$[A-Za-z]+$/]
-	];
-	this.functions = [
-		[/^([A-Za-z]+\(\))\s*/, "function", /^[A-Za-z]+\(\)$/]
-	];
-	
-	this.types = this.comments.concat(this.syntax)
-		.concat(this.operations)
-		.concat(this.variables)
-		.concat(this.datatypes)
-		.concat(this.functions);
+	this.plain = [];
 }
 
 module.exports = {

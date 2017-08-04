@@ -337,10 +337,6 @@ function Parser () {
 				throw new Error("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")");
 		}
 		
-		if (statement[0] && statement[0][1] != "if" && statement[0][1] != "elseif") {
-			this.conditions = [];
-		}
-		
 		if ((statement.length - 1) > lastLooked) {
 			throw new Error("Unexpected token: `" + statement[lastLooked + 1] + "`");
 		}

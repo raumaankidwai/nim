@@ -481,12 +481,12 @@ function Tokenizer () {
 						throw new Error("String without ending");
 					}
 					
-					value += block[i];
-					
 					bs = false;
 					
 					if (block[i] == "\\") {
 						bs = true;
+					} else {
+						value += block[i];
 					}
 				}
 				

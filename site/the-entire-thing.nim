@@ -63,9 +63,9 @@ $a %/ 4 = <!--{ print(){ $a %/ 4; }; }--><br/><br/>
 	
 	if { $lastdigit > 8; } {
 		print() "The last digit of this second IS GREATER THAN 8.";
-	}; else if { $lastdigit >= 8; } {
+	}; elseif { $lastdigit >= 8; } {
 		print() "The last digit of this second IS NOT GREATER THAN 8 but IS GREATER THAN OR EQUAL TO 8.";
-	}; else if { $lastdigit <= 8; } {
+	}; elseif { $lastdigit <= 8; } {
 		print() "The last digit of this second IS LESS THAN OR EQUAL TO 8.";
 	}; else {
 		# ;)

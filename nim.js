@@ -422,9 +422,9 @@ function Tokenizer () {
 			} else if (value == "=") {
 				if (block[i + 1] == "=") {
 					type = "equality";
+				} else {
+					type = "equals";
 				}
-				
-				type = "equals";
 			} else if (value == "+") {
 				type = "plus";
 			} else if (value == "-") {

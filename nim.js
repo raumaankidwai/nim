@@ -295,6 +295,7 @@ function Parser () {
 					break; case undefined:
 						ret = statement[0];
 					break; default:
+						console.log("%j", statement);
 						throw new Error("Expected operation on " + statement[0][1]);
 				}
 				

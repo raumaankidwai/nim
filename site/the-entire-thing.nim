@@ -51,9 +51,9 @@ $a %/ 4 = <!--{ print(){ $a %/ 4; }; }--><br/><br/>
 	
 	$lastdigit = { $sec % 10; };
 	
-	if { $lastdigit == 7 } {
+	if { $lastdigit == 7; } {
 		print() "The last digit of this second IS EQUAL TO 7.";
-	}; elseif { $lastdigit == 4 } {
+	}; elseif { $lastdigit == 4; } {
 		print() "The last digit of this second IS NOT EQUAL TO 7 and IS EQUAL TO 4.";
 	}; else {
 		print() "The last digit of this second IS NOT EQUAL TO 7 and IS NOT EQUAL TO 4.";
@@ -61,11 +61,11 @@ $a %/ 4 = <!--{ print(){ $a %/ 4; }; }--><br/><br/>
 	
 	print() "<br/>";
 	
-	if { $lastdigit > 8 } {
+	if { $lastdigit > 8; } {
 		print() "The last digit of this second IS GREATER THAN 8.";
-	}; else if { $lastdigit >= 8 } {
+	}; else if { $lastdigit >= 8; } {
 		print() "The last digit of this second IS NOT GREATER THAN 8 but IS GREATER THAN OR EQUAL TO 8.";
-	}; else if { $lastdigit <= 8 } {
+	}; else if { $lastdigit <= 8; } {
 		print() "The last digit of this second IS LESS THAN OR EQUAL TO 8.";
 	}; else {
 		# ;)

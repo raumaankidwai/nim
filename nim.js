@@ -234,8 +234,6 @@ function Parser () {
 		
 		var lastLooked = 0;
 		
-		console.log("%j", statement);
-		
 		switch (statement[0][1]) {
 			case "comment":
 				

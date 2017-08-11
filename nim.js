@@ -282,6 +282,16 @@ function Parser () {
 						ret = statement[0][0] % statement[2][0];
 					break; case "intdiv":
 						ret = Math.floor(statement[0][0] / statement[2][0]);
+					break; case "equality":
+						ret = statement[0][0] == statement[2][0];
+					break; case "gt":
+						ret = statement[0][0] > statement[2][0];
+					break; case "gte":
+						ret = statement[0][0] >= statement[2][0];
+					break; case "lt":
+						ret = statement[0][0] < statement[2][0];
+					break; case "lte":
+						ret = statement[0][0] <= statement[2][0];
 					break; case undefined:
 						ret = statement[0];
 					break; default:
@@ -387,7 +397,7 @@ function Tokenizer () {
 			var type;
 			
 			// Hello, future me.
-			// If you're reading this, this tokenizer has broken and you probably still remember writing this comment.
+			// If you're reading this, this tokenizer has probably broken and you probably still remember writing this comment.
 			// Don't try to understand the increments. Please.
 			// They work. Maybe.
 			
@@ -409,6 +419,10 @@ function Tokenizer () {
 			} else if (value == ";") {
 				type = "eol";
 			} else if (value == "=") {
+				if (block[i + 1] == "=") {
+					type = "equality";
+				}
+				
 				type = "equals";
 			} else if (value == "+") {
 				type = "plus";
@@ -426,6 +440,13 @@ function Tokenizer () {
 				} else {
 					type = "mod";
 				}
+			} else if (value == ">" || value == "<") {
+				type = (value == ">" ? "g" : "l") + "t";
+				
+				if (block[i + 1] == "=") {
+					type += "e";
+					i ++;
+				}
 			} else if (value == "$") {
 				// If there is no alphanumeric character in front of the $, error
 				if (!/[A-Za-z0-9]/.test(block[++i])) {
@@ -441,7 +462,7 @@ function Tokenizer () {
 					i ++;
 				}
 				
-				if (block[i] == "=") {
+				if (block[i] == "=" && block[i + 1] != "=") {
 					type = "variableSet";
 				} else {
 					type = "variableGet";

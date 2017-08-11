@@ -234,6 +234,8 @@ function Parser () {
 		
 		var lastLooked = 0;
 		
+		console.log("%j", statement);
+		
 		switch (statement[0][1]) {
 			case "comment":
 				
@@ -295,7 +297,6 @@ function Parser () {
 					break; case undefined:
 						ret = statement[0];
 					break; default:
-						console.log("%j", statement);
 						throw new Error("Expected operation on " + statement[0][1]);
 				}
 				

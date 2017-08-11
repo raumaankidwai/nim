@@ -423,6 +423,7 @@ function Tokenizer () {
 			} else if (value == "=") {
 				if (block[i + 1] == "=") {
 					type = "equality";
+					i ++;
 				} else {
 					type = "equals";
 				}

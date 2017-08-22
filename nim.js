@@ -128,7 +128,7 @@ function Server (config) {
 	this.processURI = (uri) => {
 		// Index file
 		if (uri[uri.length - 1] == "/") {
-			uri += this.index;
+			uri += this.config.index;
 		}
 		
 		// Truncates first /
@@ -138,7 +138,7 @@ function Server (config) {
 		// This. Module. Is. Amazing.
 		// at least it seems so after 5 hours of not knowing about it
 		uri = path.format({
-			dir: this.absolute,
+			dir: this.config.absolute,
 			base: uri
 		});
 		

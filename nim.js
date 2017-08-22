@@ -81,7 +81,7 @@ const utils = {
 //                      |-----> Server.processURI -----| |-----> Tokenizer.tokenize -----|
 
 // Server constructor
-function Server () {
+function Server (config) {
 	// Process requests, level 0
 	this.process = (req, res) => {
 		var code = 200;
@@ -121,15 +121,6 @@ function Server () {
 		res.write(output);
 		
 		res.end();
-	};
-	
-	// Initialize server
-	// Initializes configs and runs tests to make sure Nim code is valid
-	// TODO: have this check all .nim files in server (sub)*dirs
-	this.init = (config) => {
-		for (var i in config) {
-			this[i] = config[i];
-		}
 	};
 	
 	// Turn URIs into file locators
@@ -172,11 +163,17 @@ function Server () {
 		return uri;
 	};
 	
-	// Absolute directory
-	this.absolute = "/";
+	this.config = {
+		// Absolute directory
+		absolute: "/",
+		
+		// Index file
+		index: "index.nim"
+	};
 	
-	// Index file
-	this.index = "index.nim";
+	for (var i in this.config) {
+		this.config[i] = config[i] || this.config[i];
+	}
 	
 	// Moving on to level 1...
 	this.parser = new Parser();

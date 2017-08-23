@@ -74,6 +74,25 @@ const utils = {
 	}
 };
 
+// Nim custom errors
+// Stolen from SO
+class NimError extends Error {
+	constructor (msg, file, char) {
+		super(msg);
+		
+		this.name = this.constructor.name;
+		
+		this.file = file;
+		this.char = char;
+		
+		Error.captureStackTrace(this, this.constructor);
+	}
+	
+	print () {
+		console.log("Error at character " + char + " in file " + file + ": " + msg);
+	}
+}
+
 // Level -1       Level 0                         Level 1        Level 2           Level 3
 
 // REQUEST -----> Server.process                  Parser.process                   Parser.parse -----> CLIENT-READY
@@ -94,18 +113,21 @@ function Server (config) {
 			try {
 				file = fs.readFileSync(uri).toString();
 			} catch (e) {
-				code = 404;
+				code = 404; // Horrible, I know
 			}
 		}
 		
-		if (code < 400 && /.nim$/.test(uri)) {
-			// TODO: better error throwing in Parser
+		if (code < 400 && /.nim$/.test(uri)) { // even more horrible
 			try {
-				output = this.parser.process(file);
+				output = this.parser.process(file, uri);
 			} catch (e) {
 				code = 500;
 				
-				throw e;
+				if (e instanceof NimError) {
+					e.print();
+				} else {
+					throw e;
+				}
 			}
 		}
 		
@@ -182,11 +204,13 @@ function Server (config) {
 // Parser constructor
 function Parser () {
 	// Interprets Nim-coded HTML, level 1
-	this.process = (text) => {
+	this.process = (text, file) => {
 		this.functions = default_functions;
 		this.variables = {};
 		
-		return this.parse(this.tokenizer.tokenize(text))[0];
+		this.file = file;
+		
+		return this.parse(this.tokenizer.tokenize(text, file))[0];
 	}
 	
 	// Parses tokenized Nim, level 3
@@ -227,7 +251,7 @@ function Parser () {
 		
 		var f = (e) => e[1] == "variableGet" ? [this.variables[e[0]], "variableGet"] : e[1] == "block" ? [e[0].map(f), e[1]] : e;
 		
-		statement = statement.map((e, i) => e[1] == "block" ? (statement[0][1] == "if" && i == 2) || (statement[0][1] == "elseif" && i == 2) || statement[0][1] == "else" ? e : (k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]), output += k[0], [k[1], k[2]]) : e).map(f);
+		statement = statement.map((e, i) => e[1] == "block" ? (statement[0][1] == "if" && i == 2) || (statement[0][1] == "elseif" && i == 2) || statement[0][1] == "else" ? e : (k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]), output += k[0], [k[1], k[2]]) : e).map(f);
 		
 		var lastLooked = 0;
 		
@@ -242,7 +266,7 @@ function Parser () {
 					statement = statement.slice(1);
 					
 					if (statement.length != func.args) {
-						throw new Error("Incorrect number of arguments: Expected " + func.args.length + " arguments for function `" + name + "` but got " + statement.length);
+						throw new NimError("Incorrect number of arguments: Expected " + func.args.length + " arguments for function `" + name + "` but got " + statement.length, this.file, statement[statement.length - 1][3]);
 					}
 					
 					var res = func.run(statement.map((e) => e[0]));
@@ -253,7 +277,7 @@ function Parser () {
 					
 					lastLooked = statement.length - 1;
 				} else {
-					throw new Error("Undefined function: " + name);
+					throw new NimError("Undefined function: " + name, this.file, statement[0][3]);
 				}
 			break; case "variableSet":
 				this.variables[statement[0][0]] = statement[1][0];
@@ -292,7 +316,7 @@ function Parser () {
 					break; case undefined:
 						ret = statement[0];
 					break; default:
-						throw new Error("Expected operation on " + statement[0][1]);
+						throw new NimError("Expected operation on " + statement[0][1], this.file, statement[0][3]);
 				}
 				
 				rettype = "" + ret === ret ? "string" : ret == true || ret == false ? "bool" : "number";
@@ -302,7 +326,7 @@ function Parser () {
 				this.conditions = [statement[1][0]];
 				
 				if (statement[1][0]) {
-					var r = statement[2][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
+					var r = statement[2][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]);
 					
 					output = r[0];
 					ret = r[1];
@@ -312,11 +336,11 @@ function Parser () {
 				lastLooked = 2;
 			break; case "elseif":
 				if (!this.conditions.length) {
-					throw new Error("elseif after no if or elseif");
+					throw new NimError("elseif after no if or elseif", this.file, statement[0][3]);
 				}
 				
 				if (!this.conditions.reduce((a, b) => a || b) && statement[1][0]) {
-					var r = statement[2][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
+					var r = statement[2][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]);
 					
 					output = r[0];
 					ret = r[1];
@@ -328,11 +352,11 @@ function Parser () {
 				lastLooked = 2;
 			break; case "else":
 				if (!this.conditions.length) {
-					throw new Error("else after no if or elseif");
+					throw new NimError("else after no if or elseif", this.file, statement[0][3]);
 				}
 				
 				if (!this.conditions.reduce((a, b) => a || b)) {
-					var r = statement[1][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
+					var r = statement[1][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]);
 					
 					output = r[0];
 					ret = r[1];
@@ -341,14 +365,14 @@ function Parser () {
 				
 				lastLooked = 1;
 			break; default:
-				throw new Error("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")");
+				throw new NimError("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")", this.file, statement[0][3]);
 		}
 		
 		if ((statement.length - 1) > lastLooked) {
-			throw new Error("Unexpected token: `" + statement[lastLooked + 1] + "`");
+			throw new NimError("Unexpected token: `" + statement[lastLooked + 1] + "`", statement[lastLooked + 1][3]);
 		}
 		
-		return [output, ret, rettype];
+		return [output, ret, rettype, statement[statement.length - 1][3]];
 	};
 	
 	// Functions
@@ -448,7 +472,7 @@ function Tokenizer () {
 			} else if (value == "$") {
 				// If there is no alphanumeric character in front of the $, error
 				if (!/[A-Za-z0-9]/.test(block[++i])) {
-					throw new Error("Expected variable identifier");
+					throw new NimError("Expected variable identifier");
 				}
 				
 				// Keep adding to the identifier until identifier runs out
@@ -475,7 +499,7 @@ function Tokenizer () {
 				
 				if (!+value) {
 					if (block[++i] != "." && block[i] != "b" && block[i] != "o" && block[i] != "x" && /\D/.test(block[i])) {
-						throw new Error("Expected numerical radix, got " + value + block[i]);
+						throw new NimError("Expected numerical radix, got " + value + block[i]);
 					} else {
 						if (block[i] == "x") {
 							hex = true;
@@ -497,7 +521,7 @@ function Tokenizer () {
 				
 				while (block[++i] != delim || bs) {
 					if (!block[i]) {
-						throw new Error("String without ending");
+						throw new NimError("String without ending");
 					}
 					
 					bs = false;
@@ -526,7 +550,7 @@ function Tokenizer () {
 					type = value;
 				}
 			} else {
-				throw new Error("Invalid character: " + value);
+				throw new NimError("Invalid character: " + value);
 			}
 			
 			tokens.push([value, type]);

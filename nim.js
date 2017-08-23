@@ -208,7 +208,7 @@ function Parser () {
 		this.variables = {};
 		
 		this.file = file;
-		
+		console.log(file);
 		return this.parse(this.tokenizer.tokenize(text, file))[0];
 	}
 	

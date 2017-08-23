@@ -392,7 +392,7 @@ function Tokenizer () {
 	// Tokenizes (lexes, lexemizes, lexically analyzes, whatever) Nim-coded HTML, level 2
 	this.tokenize = (text, file) => {
 		this.reset();
-		console.log(file);
+		
 		this.raw = text;
 		this.file = file;
 		
@@ -566,7 +566,7 @@ function Tokenizer () {
 			while (/\s/.test(block[++i]));
 		}
 		
-		tokens = utils.splitIntoStatements(utils.splitIntoBlocks(tokens, this.file));
+		tokens = utils.splitIntoStatements(utils.splitIntoBlocks(tokens), this.file);
 		
 		return tokens;
 	};

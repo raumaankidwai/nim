@@ -88,7 +88,7 @@ class NimError extends Error {
 	}
 	
 	print () {
-		console.log("Error at character " + this.char + " in file " + this.file + ": " + this.message);
+		console.log("Error at character " + this.char + " in file " + this.file.replace(/\/+/g, "/") + ": " + this.message);
 	}
 }
 

@@ -208,7 +208,7 @@ function Parser () {
 		this.variables = {};
 		
 		this.file = file;
-		console.log(file);
+		
 		return this.parse(this.tokenizer.tokenize(text, file))[0];
 	}
 	
@@ -392,7 +392,7 @@ function Tokenizer () {
 	// Tokenizes (lexes, lexemizes, lexically analyzes, whatever) Nim-coded HTML, level 2
 	this.tokenize = (text, file) => {
 		this.reset();
-		
+		console.log(file);
 		this.raw = text;
 		this.file = file;
 		

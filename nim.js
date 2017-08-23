@@ -251,6 +251,7 @@ function Parser () {
 		
 		var f = (e) => e[1] == "variableGet" ? [this.variables[e[0]], "variableGet"] : e[1] == "block" ? [e[0].map(f), e[1]] : e;
 		
+		console.log("%j", statement);
 		statement = statement.map((e, i) => e[1] == "block" ? (statement[0][1] == "if" && i == 2) || (statement[0][1] == "elseif" && i == 2) || statement[0][1] == "else" ? e : (k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]), output += k[0], [k[1], k[2]]) : e).map(f);
 		
 		var lastLooked = 0;
@@ -407,9 +408,6 @@ function Tokenizer () {
 			
 			indices.push(i);
 		}
-		
-		console.log("%j", blocks);
-		console.log("%j", indices.map((e) => text[e]));
 		
 		// Plain HTML surrounding Nim blocks, to be interleaved with Nim output
 		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));

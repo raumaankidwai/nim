@@ -378,7 +378,6 @@ function Parser () {
 	// Functions
 	this.functions = default_functions;
 	
-	
 	// Variables
 	this.variables = {};
 	
@@ -398,19 +397,28 @@ function Tokenizer () {
 		this.raw = text;
 		
 		// Array of blocks of pure Nim code
-		var blocks = text.match(/<!--{\s*([\W\w]+?)\s*}-->/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
+		var re = /<!--{\s*([\W\w]+?)\s*}-->/g;
+		var blocks = [], indices = [], match;
+		
+		while (match = re.exec(text)) {
+			blocks.push(match[1]);
+			
+			for (var i = match.index + 5; /\s/.test(text[i]); i ++);
+			
+			indices.push(i);
+		}
 		
 		// Plain HTML surrounding Nim blocks, to be interleaved with Nim output
 		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
 		
 		for (var i = 0; i < blocks.length; i ++) {
-			this.tokens.push(this.tokenizeBlock(blocks[i]));
+			this.tokens.push(this.tokenizeBlock(blocks[i], indices[i]));
 		}
 		
 		return this;
 	};
 	
-	this.tokenizeBlock = (block) => {
+	this.tokenizeBlock = (block, index) => {
 		var tokens = [];
 		
 		for (var i = 0; i < block.length;) {
@@ -472,7 +480,7 @@ function Tokenizer () {
 			} else if (value == "$") {
 				// If there is no alphanumeric character in front of the $, error
 				if (!/[A-Za-z0-9]/.test(block[++i])) {
-					throw new NimError("Expected variable identifier");
+					throw new NimError("Expected variable identifier", this.file, index + i);
 				}
 				
 				// Keep adding to the identifier until identifier runs out
@@ -499,7 +507,7 @@ function Tokenizer () {
 				
 				if (!+value) {
 					if (block[++i] != "." && block[i] != "b" && block[i] != "o" && block[i] != "x" && /\D/.test(block[i])) {
-						throw new NimError("Expected numerical radix, got " + value + block[i]);
+						throw new NimError("Expected numerical radix, got " + value + block[i], this.file, index + i);
 					} else {
 						if (block[i] == "x") {
 							hex = true;
@@ -521,7 +529,7 @@ function Tokenizer () {
 				
 				while (block[++i] != delim || bs) {
 					if (!block[i]) {
-						throw new NimError("String without ending");
+						throw new NimError("String without ending", this.file, index + i);
 					}
 					
 					bs = false;
@@ -550,10 +558,10 @@ function Tokenizer () {
 					type = value;
 				}
 			} else {
-				throw new NimError("Invalid character: " + value);
+				throw new NimError("Invalid character: " + value, this.file, index + i);
 			}
 			
-			tokens.push([value, type]);
+			tokens.push([value, type, index + i]);
 			
 			while (/\s/.test(block[++i]));
 		}

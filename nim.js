@@ -50,7 +50,7 @@ const utils = {
 	},
 	
 	// Split partially tokenized block into statements on EOL (;)
-	splitIntoStatements: (tokens) => {
+	splitIntoStatements: (tokens, file) => {
 		var t = [];
 		
 		for (var i = 0; i < tokens.length; i ++) {
@@ -58,14 +58,13 @@ const utils = {
 			
 			while (tokens[i][1] != "eol") {
 				if (tokens[i][1] == "block") {
-					tokens[i][0] = utils.splitIntoStatements(tokens[i][0]);
+					tokens[i][0] = utils.splitIntoStatements(tokens[i][0], file);
 				}
 				
-				t[t.length - 1].push(tokens[i]);
-				i ++;
+				t[t.length - 1].push(tokens[i ++]);
 				
 				if (i >= tokens.length) {
-					throw new Error("Code block does not end in semicolon.");
+					throw new NimError("Code block does not end in semicolon.", file, tokens[tokens.length - 1][2]);
 				}
 			}
 		}
@@ -391,10 +390,11 @@ function Parser () {
 // Tokenizer constructor
 function Tokenizer () {
 	// Tokenizes (lexes, lexemizes, lexically analyzes, whatever) Nim-coded HTML, level 2
-	this.tokenize = (text) => {
+	this.tokenize = (text, file) => {
 		this.reset();
 		
 		this.raw = text;
+		this.file = file;
 		
 		// Array of blocks of pure Nim code
 		var re = /<!--{\s*([\W\w]+?)\s*}-->/g;

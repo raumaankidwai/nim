@@ -408,6 +408,9 @@ function Tokenizer () {
 			indices.push(i);
 		}
 		
+		console.log("%j", blocks);
+		console.log("%j", indices.map((e) => text[e]));
+		
 		// Plain HTML surrounding Nim blocks, to be interleaved with Nim output
 		this.plain = text.match(/(^|}-->)([\W\w]*?)(<!--{|$)/g).map((e) => e.replace(/(<!--{\s*|\s*}-->)/g, ""));
 		

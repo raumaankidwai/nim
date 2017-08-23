@@ -254,7 +254,6 @@ function Parser () {
 		console.log("%j", statement);
 		statement = statement.map((e, i) => e[1] == "block" ? (statement[0][1] == "if" && i == 2) || (statement[0][1] == "elseif" && i == 2) || statement[0][1] == "else" ? e : (k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]), output += k[0], [k[1], k[2]]) : e).map(f);
 		console.log("%j", statement);
-		console.log("-----" + statement.length);
 		
 		var lastLooked = 0;
 		
@@ -374,6 +373,9 @@ function Parser () {
 		if ((statement.length - 1) > lastLooked) {
 			throw new NimError("Unexpected token: `" + statement[lastLooked + 1] + "`", statement[lastLooked + 1][2]);
 		}
+		
+		console.log("%j", statement);
+		console.log("-----");
 		
 		return [output, ret, rettype, statement[statement.length - 1][2]];
 	};

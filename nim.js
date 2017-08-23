@@ -566,7 +566,7 @@ function Tokenizer () {
 			while (/\s/.test(block[++i]));
 		}
 		
-		tokens = utils.splitIntoStatements(utils.splitIntoBlocks(tokens));
+		tokens = utils.splitIntoStatements(utils.splitIntoBlocks(tokens, this.file));
 		
 		return tokens;
 	};
@@ -576,7 +576,9 @@ function Tokenizer () {
 		this.tokens = [];
 		
 		this.raw = "";
-		this.plain = "";
+		this.plain = [];
+		
+		this.file = "";
 		
 		return this;
 	};
@@ -590,6 +592,8 @@ function Tokenizer () {
 	
 	this.raw = "";
 	this.plain = [];
+	
+	this.file = "";
 }
 
 module.exports = {

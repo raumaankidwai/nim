@@ -267,7 +267,7 @@ function Parser () {
 					statement = statement.slice(1);
 					
 					if (statement.length != func.args) {
-						throw new NimError("Incorrect number of arguments: Expected " + func.args.length + " arguments for function `" + name + "` but got " + statement.length, this.file, statement[statement.length - 1][3]);
+						throw new NimError("Incorrect number of arguments: Expected " + func.args.length + " arguments for function `" + name + "` but got " + statement.length, this.file, statement[statement.length - 1][2]);
 					}
 					
 					var res = func.run(statement.map((e) => e[0]));
@@ -278,7 +278,7 @@ function Parser () {
 					
 					lastLooked = statement.length - 1;
 				} else {
-					throw new NimError("Undefined function: " + name, this.file, statement[0][3]);
+					throw new NimError("Undefined function: " + name, this.file, statement[0][2]);
 				}
 			break; case "variableSet":
 				this.variables[statement[0][0]] = statement[1][0];
@@ -317,7 +317,7 @@ function Parser () {
 					break; case undefined:
 						ret = statement[0];
 					break; default:
-						throw new NimError("Expected operation on " + statement[0][1], this.file, statement[0][3]);
+						throw new NimError("Expected operation on " + statement[0][1], this.file, statement[0][2]);
 				}
 				
 				rettype = "" + ret === ret ? "string" : ret == true || ret == false ? "bool" : "number";
@@ -337,7 +337,7 @@ function Parser () {
 				lastLooked = 2;
 			break; case "elseif":
 				if (!this.conditions.length) {
-					throw new NimError("elseif after no if or elseif", this.file, statement[0][3]);
+					throw new NimError("elseif after no if or elseif", this.file, statement[0][2]);
 				}
 				
 				if (!this.conditions.reduce((a, b) => a || b) && statement[1][0]) {
@@ -353,7 +353,7 @@ function Parser () {
 				lastLooked = 2;
 			break; case "else":
 				if (!this.conditions.length) {
-					throw new NimError("else after no if or elseif", this.file, statement[0][3]);
+					throw new NimError("else after no if or elseif", this.file, statement[0][2]);
 				}
 				
 				if (!this.conditions.reduce((a, b) => a || b)) {
@@ -366,14 +366,14 @@ function Parser () {
 				
 				lastLooked = 1;
 			break; default:
-				throw new NimError("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")", this.file, statement[0][3]);
+				throw new NimError("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")", this.file, statement[0][2]);
 		}
 		
 		if ((statement.length - 1) > lastLooked) {
-			throw new NimError("Unexpected token: `" + statement[lastLooked + 1] + "`", statement[lastLooked + 1][3]);
+			throw new NimError("Unexpected token: `" + statement[lastLooked + 1] + "`", statement[lastLooked + 1][2]);
 		}
 		
-		return [output, ret, rettype, statement[statement.length - 1][3]];
+		return [output, ret, rettype, statement[statement.length - 1][2]];
 	};
 	
 	// Functions

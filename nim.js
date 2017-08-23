@@ -265,13 +265,13 @@ function Parser () {
 				var func = this.functions[name];
 				
 				if (func) {
-					statement = statement.slice(1);
+					var args = statement.slice(1);
 					
-					if (statement.length != func.args) {
-						throw new NimError("Incorrect number of arguments: Expected " + func.args.length + " arguments for function `" + name + "` but got " + statement.length, this.file, statement[statement.length - 1][2]);
+					if (args.length != func.args) {
+						throw new NimError("Incorrect number of arguments: Expected " + func.args.length + " arguments for function `" + name + "` but got " + args.length, this.file, statement[statement.length - 1][2]);
 					}
 					
-					var res = func.run(statement.map((e) => e[0]));
+					var res = func.run(args.map((e) => e[0]));
 					
 					output += res[0];
 					ret = res[1];

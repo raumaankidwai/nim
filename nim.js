@@ -76,8 +76,6 @@ const utils = {
 // Nim custom errors
 // Stolen from SO
 function NimError (msg, file, char) {
-	super(msg);
-	
 	this.name = this.constructor.name;
 	
 	this.file = file.replace(/\/+/g, "/");

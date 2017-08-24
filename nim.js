@@ -75,21 +75,29 @@ const utils = {
 
 // Nim custom errors
 // Stolen from SO
-class NimError extends Error {
-	constructor (msg, file, char) {
-		super(msg);
-		
-		this.name = this.constructor.name;
-		
-		this.file = file;
-		this.char = char;
-		
-		Error.captureStackTrace(this, this.constructor);
-	}
+function NimError (msg, file, char) {
+	super(msg);
 	
-	print () {
-		console.log("Error at character " + this.char + " in file " + this.file.replace(/\/+/g, "/") + ": " + this.message);
-	}
+	this.name = this.constructor.name;
+	
+	this.file = file.replace(/\/+/g, "/");
+	this.fileText = fs.readFileSync(file).toString();
+	
+	var leadingText = this.fileText.slice(0, char);
+	
+	this.line = leadingText.match(/\n/g).length + 1;
+	this.char = char - leadingText.lastIndexOf("\n");
+	
+	Error.captureStackTrace(this, this.constructor);
+}
+
+NimError.prototype = Object.create(Error.prototype);
+
+NimError.prototype.print = function () {
+	console.log(this.file + ":" + this.line + ":" + this.char);
+	console.log("\t\t" + this.fileText.split("\n")[this.line - 1]);
+	console.log("NimError: " + this.message);
+	console.log("    at " + this.file + ":" + this.line + ":" + this.char);
 }
 
 // Level -1       Level 0                         Level 1        Level 2           Level 3

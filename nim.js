@@ -76,6 +76,8 @@ const utils = {
 // Nim custom errors
 // Stolen from SO
 function NimError (msg, file, char) {
+	this.message = msg;
+	
 	this.name = this.constructor.name;
 	
 	this.file = file.replace(/\/+/g, "/");
@@ -94,6 +96,7 @@ NimError.prototype = Object.create(Error.prototype);
 NimError.prototype.print = function () {
 	console.log(this.file + ":" + this.line + ":" + this.char);
 	console.log("\t\t" + this.fileText.split("\n")[this.line - 1]);
+	console.log("\t\t".padEnd(this.char) + "^");
 	console.log("NimError: " + this.message);
 	console.log("    at " + this.file + ":" + this.line + ":" + this.char);
 }

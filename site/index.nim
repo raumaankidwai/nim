@@ -74,5 +74,13 @@ $a %/ 4 = <!--{ print(){ $a %/ 4; }; }--><br/><br/>
 }--><br/><br/>
 
 <!--{
+	def "add" $a $b {
+		$a + $b;
+	};
+	
+	print() { "add(3, 4) = " + { add() 3 4; }; };
+}-->
+
+<!--{
 	print() { { epoch(); } - $time; };
 }--> ms have elapsed since parser started. <br/><br/>

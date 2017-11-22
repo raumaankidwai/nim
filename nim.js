@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const default_functions = {
+const defaultFunctions = {
 	"print": {
 		args: 1,
 		type: "string",
@@ -254,12 +254,32 @@ function Parser () {
 	// <if> <boolean> <block>
 	// <elseif> <boolean> <block>
 	// <else> <block>
+	// <def> <string> <string...> <block>
 	this.parseStatement = (statement) => {
 		var output = "", ret, rettype, k;
 		
-		var f = (e) => e[1] == "variableGet" ? [this.variables[e[0]], "variableGet"] : e[1] == "block" ? [e[0].map(f), e[1]] : e;
+		var f = (e) => {
+			// If type is variableGet and statement isn't one that requires variable-type expressions not to be evaluated beforehand, evaluate variable
+			if (e[1] == "variableGet" && !(["def"].indexOf(statement[0][1]) > -1)) {
+				return [this.variables[e[0]], "variableGet"];
+			} else if (e[1] == "block") {
+				return [e[0].map(f), e[1]];
+			} else {
+				return e;
+			}
+		};
 		
-		statement = statement.map((e, i) => e[1] == "block" ? (statement[0][1] == "if" && i == 2) || (statement[0][1] == "elseif" && i == 2) || statement[0][1] == "else" ? e : (k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]), output += k[0], [k[1], k[2]]) : e).map(f);
+		statement = statement.map((e, i) => {
+			// If type is block and statement isn't one that requires blocks not to be evaluated beforehand, evaluate block
+			if (e[1] == "block" && !(["if", "elseif", "else", "def"].indexOf(statement[0][1]) > -1 && i == statement.length - 1)) {
+				var k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]);
+				output += k[0];
+				
+				return [k[1], k[2]];
+			} else {
+				return e;
+			}
+		}).map(f);
 		
 		var lastLooked = 0;
 		
@@ -372,12 +392,22 @@ function Parser () {
 				}
 				
 				lastLooked = 1;
+			break; case "def":
+				console.log(JSON.stringify(statement));
+				
+				var args = statement.slice(2, statement.length - 1);
+				var code = statement[statement.length - 1];
+								
+				this.functions[statement[1][0]] = {
+					args: args.length,
+					
+				};
 			break; default:
 				throw new NimError("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")", this.file, statement[0][2]);
 		}
 		
 		if ((statement.length - 1) > lastLooked) {
-			throw new NimError("Unexpected token: `" + statement[lastLooked + 1] + "`", statement[lastLooked + 1][2]);
+			throw new NimError("Unexpected token: `" + statement[lastLooked + 1] + "`", this.file, statement[lastLooked + 1][2]);
 		}
 		
 		return [output, ret, rettype, statement[statement.length - 1][2]];
@@ -563,7 +593,7 @@ function Tokenizer () {
 				} else if ((block[i + 1] + block[i + 2]) == "()") {
 					i += 2;
 					type = "function";
-				} else if (value == "if" || value == "elseif" || value == "else") {
+				} else if (this.keywords.indexOf(value) > -1) {
 					type = value;
 				}
 			} else {
@@ -591,6 +621,9 @@ function Tokenizer () {
 		
 		return this;
 	};
+	
+	// List of straight identifier keywords, ex. if, elseif, else, def, ...
+	this.keywords = ["if", "elseif", "else", "def"];
 	
 	// Tokens array, Array of arrays of arrays of tuples
 	// Each tuple is a token

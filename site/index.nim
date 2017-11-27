@@ -74,7 +74,7 @@ $a %/ 4 = <!--{ print(){ $a %/ 4; }; }--><br/><br/>
 }--><br/><br/>
 
 <!--{
-	def "add" $a $b {
+	def "add" "number" $a $b {
 		$a + $b;
 	};
 	

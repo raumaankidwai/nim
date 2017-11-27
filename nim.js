@@ -396,7 +396,7 @@ function Parser () {
 				console.log(JSON.stringify(statement));
 				
 				var args = statement.slice(3, statement.length - 1);
-				var code = statement[statement.length - 1];
+				var code = statement[statement.length - 1][0];
 								
 				this.functions[statement[1][0]] = {
 					args: args.length,

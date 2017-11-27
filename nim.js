@@ -416,6 +416,8 @@ function Parser () {
 				
 				lastLooked = statement.length - 1;
 			break; default:
+				console.log(JSON.stringify(statement));
+				
 				throw new NimError("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")", this.file, statement[0][2]);
 		}
 		

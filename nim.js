@@ -254,7 +254,7 @@ function Parser () {
 	// <if> <boolean> <block>
 	// <elseif> <boolean> <block>
 	// <else> <block>
-	// <def> <string> <string...> <block>
+	// <def> <string> <string(type)> <string...> <block>
 	this.parseStatement = (statement) => {
 		var output = "", ret, rettype, k;
 		
@@ -395,13 +395,18 @@ function Parser () {
 			break; case "def":
 				console.log(JSON.stringify(statement));
 				
-				var args = statement.slice(2, statement.length - 1);
+				var args = statement.slice(3, statement.length - 1);
 				var code = statement[statement.length - 1];
 								
 				this.functions[statement[1][0]] = {
 					args: args.length,
-					
+					type: statement[2],
+					run: (a, o) => {
+						
+					}
 				};
+				
+				lastLooked = statement.length - 1;
 			break; default:
 				throw new NimError("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")", this.file, statement[0][2]);
 		}

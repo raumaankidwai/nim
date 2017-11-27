@@ -213,7 +213,7 @@ function Server (config) {
 function Parser () {
 	// Interprets Nim-coded HTML, level 1
 	this.process = (text, file) => {
-		this.functions = default_functions;
+		this.functions = defaultFunctions;
 		this.variables = {};
 		
 		this.file = file;
@@ -427,7 +427,7 @@ function Parser () {
 	};
 	
 	// Functions
-	this.functions = default_functions;
+	this.functions = defaultFunctions;
 	
 	// Variables
 	this.variables = {};

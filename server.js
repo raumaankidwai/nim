@@ -2,7 +2,7 @@ const http = require("http");
 const Nim = require("./nim.js");
 
 const server = new Nim.Server({
-	absolute: "/Users/raumaankidwai/nim/site/",
+	absolute: "/home/pi/nim/site/",
 	index: "index.nim"
 });
 

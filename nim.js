@@ -393,8 +393,6 @@ function Parser () {
 				
 				lastLooked = 1;
 			break; case "def":
-				console.log(JSON.stringify(statement));
-				
 				var args = statement.slice(3, statement.length - 1);
 				var code = statement[statement.length - 1][0];
 								
@@ -405,10 +403,7 @@ function Parser () {
 						var parser2 = Object.assign(new Parser(), this);
 						
 						for (var i = 0; i < args.length; i ++) {
-							parser2.variables[args[i]] = a[i];
-							console.log(args[i]);
-							console.log(a[i]);
-							console.log("-");
+							parser2.variables[args[i][0]] = a[i];
 						}
 						
 						var k = code.map(parser2.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]);
@@ -419,8 +414,6 @@ function Parser () {
 				
 				lastLooked = statement.length - 1;
 			break; default:
-				console.log(JSON.stringify(statement));
-				
 				throw new NimError("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")", this.file, statement[0][2]);
 		}
 		

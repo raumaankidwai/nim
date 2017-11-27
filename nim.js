@@ -406,6 +406,9 @@ function Parser () {
 						
 						for (var i = 0; i < args.length; i ++) {
 							parser2.variables[args[i]] = a[i];
+							console.log(args[i]);
+							console.log(a[i]);
+							console.log("-");
 						}
 						
 						var k = code.map(parser2.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]);

@@ -402,7 +402,15 @@ function Parser () {
 					args: args.length,
 					type: statement[2],
 					run: (a, o) => {
+						var parser2 = Object.assign(new Parser(), this);
 						
+						for (var i = 0; i < args.length; i ++) {
+							parser2.variables[args[i]] = a[i];
+						}
+						
+						var k = code.map(parser2.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]);
+						
+						return [k[0], k[1]];
 					}
 				};
 				

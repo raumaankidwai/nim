@@ -1,7 +1,7 @@
 <!--{
 
 model EventHandler {
-	def $$ $events {
+	cons "you should not be using the return value of this function" $events {
 		$$events = [];
 		
 		for $i 0 { len $events; } {
@@ -9,7 +9,7 @@ model EventHandler {
 		};
 	};
 	
-	def $$dispatchEvent $event $args {
+	method "dispatchEvent" "you should not be using the return value of this function" $event $args {
 		$callbacks = $$events[$event];
 		
 		for $i 0 { len $callbacks; } {
@@ -17,7 +17,7 @@ model EventHandler {
 		}
 	};
 	
-	def $$on $event $callback {
+	method "on" "you should not be using the return value of this function" $event $callback {
 		$$events[$event]->push() $callback;
 	};
 };

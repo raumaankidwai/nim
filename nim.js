@@ -4,12 +4,10 @@ const path = require("path");
 const defaultFunctions = {
 	"print": {
 		args: 1,
-		type: "string",
 		run: (a, o) => [a[0], a[0]]
 	},
 	"epoch": {
 		args: 0,
-		type: "number",
 		run: (a, o) => ["", new Date().getTime()]
 	}
 };
@@ -254,14 +252,16 @@ function Parser () {
 	// <if> <boolean> <block>
 	// <elseif> <boolean> <block>
 	// <else> <block>
-	// <def> <string> <string(type)> <string...> <block>
+	// <def> <string> <string(type)> <variable...> <block>
+	// <for> <variable> <boolean> <block> <block>
+	// <while> <boolean> <block>
 	this.parseStatement = (statement) => {
-		var output = "", ret, rettype, k;
+		var output = "", ret, k;
 		
 		var f = (e) => {
 			// If type is variableGet and statement isn't one that requires variable-type expressions not to be evaluated beforehand, evaluate variable
 			if (e[1] == "variableGet" && !(["def"].indexOf(statement[0][1]) > -1)) {
-				return [this.variables[e[0]], "variableGet"];
+				return [this.variables[e[0]], "data"];
 			} else if (e[1] == "block") {
 				return [e[0].map(f), e[1]];
 			} else {
@@ -272,7 +272,7 @@ function Parser () {
 		statement = statement.map((e, i) => {
 			// If type is block and statement isn't one that requires blocks not to be evaluated beforehand, evaluate block
 			if (e[1] == "block" && !(["if", "elseif", "else", "def"].indexOf(statement[0][1]) > -1 && i == statement.length - 1)) {
-				var k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]);
+				var k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
 				output += k[0];
 				
 				return [k[1], k[2]];
@@ -301,7 +301,6 @@ function Parser () {
 					
 					output += res[0];
 					ret = res[1];
-					rettype = func.type;
 					
 					lastLooked = statement.length - 1;
 				} else {
@@ -311,13 +310,9 @@ function Parser () {
 				this.variables[statement[0][0]] = statement[1][0];
 				
 				ret = statement[1][0];
-				rettype = statement[1][1];
 				
 				lastLooked = 1;
-			break; case "number":
-			case "string":
-			case "bool":
-			case "variableGet":
+			break; case "data":
 				switch (statement[1][1]) {
 					case "plus":
 						ret = statement[0][0] + statement[2][0];
@@ -347,18 +342,15 @@ function Parser () {
 						throw new NimError("Expected operation on " + statement[0][1], this.file, statement[0][2]);
 				}
 				
-				rettype = "" + ret === ret ? "string" : ret == true || ret == false ? "bool" : "number";
-				
 				lastLooked = 2;
 			break; case "if":
 				this.conditions = [statement[1][0]];
 				
 				if (statement[1][0]) {
-					var r = statement[2][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]);
+					var r = statement[2][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
 					
 					output = r[0];
 					ret = r[1];
-					rettype = r[2];
 				}
 				
 				lastLooked = 2;
@@ -368,11 +360,10 @@ function Parser () {
 				}
 				
 				if (!this.conditions.reduce((a, b) => a || b) && statement[1][0]) {
-					var r = statement[2][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]);
+					var r = statement[2][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
 					
 					output = r[0];
 					ret = r[1];
-					rettype = r[2];
 				}
 				
 				this.conditions.push(statement[1][0]);
@@ -384,11 +375,10 @@ function Parser () {
 				}
 				
 				if (!this.conditions.reduce((a, b) => a || b)) {
-					var r = statement[1][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]);
+					var r = statement[1][0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
 					
 					output = r[0];
 					ret = r[1];
-					rettype = r[2];
 				}
 				
 				lastLooked = 1;
@@ -406,7 +396,7 @@ function Parser () {
 							parser2.variables[args[i][0]] = a[i];
 						}
 						
-						var k = code.map(parser2.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2], b[3]]);
+						var k = code.map(parser2.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
 						
 						return [k[0], k[1]];
 					}
@@ -421,7 +411,7 @@ function Parser () {
 			throw new NimError("Unexpected token: `" + statement[lastLooked + 1] + "`", this.file, statement[lastLooked + 1][2]);
 		}
 		
-		return [output, ret, rettype, statement[statement.length - 1][2]];
+		return [output, ret, statement[statement.length - 1][2]];
 	};
 	
 	// Functions
@@ -551,7 +541,7 @@ function Tokenizer () {
 				
 				value = value.slice(1);
 			} else if (/\d/.test(value)) {
-				type = "number";
+				type = "data";
 				
 				var hex = false;
 				
@@ -573,7 +563,7 @@ function Tokenizer () {
 				
 				value = Number(value);
 			} else if (value == "\"" || value == "'") {
-				type = "string";
+				type = "data";
 				
 				var delim = value, bs = false; // Backslashes indicate BS string endings
 				
@@ -599,13 +589,15 @@ function Tokenizer () {
 				}
 				
 				if (value == "true" || value == "false") {
-					type = "bool";
+					type = "data";
 					value = value == "true";
 				} else if ((block[i + 1] + block[i + 2]) == "()") {
 					i += 2;
 					type = "function";
 				} else if (this.keywords.indexOf(value) > -1) {
 					type = value;
+				} else {
+					throw new NimError("Invalid identifier:" + value, this.file, index + i);
 				}
 			} else {
 				throw new NimError("Invalid character: " + value, this.file, index + i);

@@ -275,7 +275,7 @@ function Parser () {
 				var k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
 				output += k[0];
 				
-				return [k[1], k[2]];
+				return [k[1], "data"];
 			} else {
 				return e;
 			}

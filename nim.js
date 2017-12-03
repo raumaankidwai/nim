@@ -252,7 +252,7 @@ function Parser () {
 	// <if> <boolean> <block>
 	// <elseif> <boolean> <block>
 	// <else> <block>
-	// <def> <string> <string(type)> <variable...> <block>
+	// <def> <string> <variable...> <block>
 	// <for> <variable> <boolean> <block> <block>
 	// <while> <boolean> <block>
 	this.parseStatement = (statement) => {
@@ -383,12 +383,11 @@ function Parser () {
 				
 				lastLooked = 1;
 			break; case "def":
-				var args = statement.slice(3, statement.length - 1);
+				var args = statement.slice(2, statement.length - 1);
 				var code = statement[statement.length - 1][0];
 								
 				this.functions[statement[1][0]] = {
 					args: args.length,
-					type: statement[2],
 					run: (a, o) => {
 						var parser2 = Object.assign(new Parser(), this);
 						

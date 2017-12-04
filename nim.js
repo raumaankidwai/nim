@@ -260,7 +260,7 @@ function Parser () {
 		
 		var f = (e) => {
 			// If type is variableGet and statement isn't one that requires variable-type expressions not to be evaluated beforehand, evaluate variable
-			if (e[1] == "variableGet" && !(["def"].indexOf(statement[0][1]) > -1)) {
+			if (e[1] == "variableGet" && !(["def", "for"].indexOf(statement[0][1]) > -1)) {
 				return [this.variables[e[0]], "data"];
 			} else if (e[1] == "block") {
 				return [e[0].map(f), e[1]];
@@ -271,7 +271,7 @@ function Parser () {
 		
 		statement = statement.map((e, i) => {
 			// If type is block and statement isn't one that requires blocks not to be evaluated beforehand, evaluate block
-			if (e[1] == "block" && !(["if", "elseif", "else", "def"].indexOf(statement[0][1]) > -1 && i == statement.length - 1)) {
+			if (e[1] == "block" && !(["if", "elseif", "else", "def", "for"].indexOf(statement[0][1]) > -1 && i == statement.length - 1)) {
 				var k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
 				output += k[0];
 				
@@ -402,6 +402,20 @@ function Parser () {
 				};
 				
 				lastLooked = statement.length - 1;
+			break; case "for":
+				var init = statement[1][0];
+				var cond = statement[2][0];
+				var action = statement[3][0];
+				var code = statement[4][0];
+				
+				var parser2 = Object.assign(new Parser(), this);
+				
+				output += parser2.parseStatement(init)[0];
+				
+				while ((k = parser2.parseStatement(cond)), (output += k[0]), k[1]) {
+					output += parser2.parseStatement(action)[0];
+					output += parser2.parseStatement(code)[0];
+				}
 			break; default:
 				throw new NimError("Invalid statement beginning: " + statement[0][0] + " (" + statement[0][1] + ")", this.file, statement[0][2]);
 		}
@@ -625,7 +639,7 @@ function Tokenizer () {
 	};
 	
 	// List of straight identifier keywords, ex. if, elseif, else, def, ...
-	this.keywords = ["if", "elseif", "else", "def"];
+	this.keywords = ["if", "elseif", "else", "def", "for", "while"];
 	
 	// Tokens array, Array of arrays of arrays of tuples
 	// Each tuple is a token

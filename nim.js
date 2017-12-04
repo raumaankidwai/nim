@@ -256,7 +256,6 @@ function Parser () {
 	// <for> <variable> <boolean> <block> <block>
 	// <while> <boolean> <block>
 	this.parseStatement = (statement) => {
-		console.log("%j",statement);
 		var output = "", ret, k;
 		
 		var f = (e) => {
@@ -415,9 +414,9 @@ function Parser () {
 				var code = statement[4][0];
 				
 				var parser2 = Object.assign(new Parser(), this);
-				
+				console.log(init);
 				output += parser2.parseStatement(init)[0];
-				
+				console.log(init);
 				while ((k = parser2.parseStatement(cond)), (output += k[0]), k[1]) {
 					output += parser2.parseStatement(action)[0];
 					output += parser2.parseStatement(code)[0];

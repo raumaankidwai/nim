@@ -256,6 +256,10 @@ function Parser () {
 	// <for> <variable> <boolean> <block> <block>
 	// <while> <boolean> <block>
 	this.parseStatement = (statement) => {
+		if (!statement.length) {
+			return;
+		}
+		
 		var output = "", ret, k;
 		
 		var f = (e) => {

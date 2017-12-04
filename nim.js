@@ -256,6 +256,7 @@ function Parser () {
 	// <for> <variable> <boolean> <block> <block>
 	// <while> <boolean> <block>
 	this.parseStatement = (statement) => {
+		console.log("%j",statement);
 		var output = "", ret, k;
 		
 		var f = (e) => {

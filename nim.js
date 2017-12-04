@@ -256,10 +256,6 @@ function Parser () {
 	// <for> <variable> <boolean> <block> <block>
 	// <while> <boolean> <block>
 	this.parseStatement = (statement) => {
-		if (!statement.length) {
-			return;
-		}
-		
 		var output = "", ret, k;
 		
 		var f = (e) => {
@@ -276,7 +272,7 @@ function Parser () {
 		statement = statement.map((e, i) => {
 			// If type is block and statement isn't one that requires blocks not to be evaluated beforehand, evaluate block
 			if (e[1] == "block" && !(["if", "elseif", "else", "def", "for"].indexOf(statement[0][1]) > -1 && i == statement.length - 1)) {
-				var k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
+				console.log(statement);var k = e[0].map(this.parseStatement).reduce((a, b) => [a[0] + b[0], b[1], b[2]]);
 				output += k[0];
 				
 				return [k[1], "data"];

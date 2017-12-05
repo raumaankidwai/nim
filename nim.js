@@ -257,7 +257,7 @@ function Parser () {
 	// <while> <boolean> <block>
 	this.parseStatement = (statement) => {
 		if (!statement.length) {
-			return;
+			return [""];
 		}
 		
 		var output = "", ret, k;

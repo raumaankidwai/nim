@@ -255,7 +255,9 @@ function Parser () {
 	// <def> <string> <variable...> <block>
 	// <for> <variable> <boolean> <block> <block>
 	// <while> <boolean> <block>
-	this.parseStatement = (statement) => {
+	this.parseStatement = (s) => {
+		var statement = JSON.parse(JSON.stringify(s));
+		
 		if (!statement.length) {
 			return [""];
 		}

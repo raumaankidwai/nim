@@ -271,7 +271,9 @@ function Parser () {
 		
 		statement = statement.map((e, i) => {
 			// If type is block and statement isn't one that requires blocks not to be evaluated beforehand, evaluate block
-			if (e[1] == "block" && !(["if", "elseif", "else", "def", "for"].indexOf(statement[0][1]) > -1 && i == statement.length - 1)) {
+			if (e[1] == "block" &&
+				!(["if", "elseif", "else"].indexOf(statement[0][1]) > -1 && i == statement.length - 1) // Commands where only the last token should be left
+				&& !(["for", "while"].indexOf(statement[0][1]) > -1)) { // Commands where all blocks shouldn't be evaluated
 				var k = e[0].map(this.parseStatement);
 				
 				if (k.length) {
@@ -414,9 +416,8 @@ function Parser () {
 				var code = statement[4][0];
 				
 				var parser2 = Object.assign(new Parser(), this);
-				console.log(init);
 				output += parser2.parseStatement(init)[0];
-				console.log(init);
+				
 				while ((k = parser2.parseStatement(cond)), (output += k[0]), k[1]) {
 					output += parser2.parseStatement(action)[0];
 					output += parser2.parseStatement(code)[0];
